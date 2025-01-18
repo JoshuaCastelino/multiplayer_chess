@@ -1,11 +1,19 @@
 import SlidingPiece from "./slidingPiece";
 
 class Queen extends SlidingPiece {
-  //   constructor(color, position, ctx) {
-  //     this.color = color; // 'white' or 'black'
-  //     this.position = position; // { x, y }
-  //     this.ctx = ctx; // Canvas rendering context
-  //   }
+  constructor(color, position, ctx) {
+    super(color, position, ctx);
+    this.directions = [
+      [-1, 0], // Left
+      [1, 0], // Right
+      [0, -1], // Down
+      [0, 1], // Up
+      [-1, -1], // Bottom-left corner
+      [1, -1], // Bottom-right corner
+      [-1, 1], // Top-left corner
+      [1, 1], // Top-right corner
+    ];
+  }
 
   draw(tileSize) {
     const { x, y } = this.position;
@@ -42,62 +50,6 @@ class Queen extends SlidingPiece {
     this.ctx.strokeStyle = this.color === "white" ? "#000000" : "#FFFFFF";
     this.ctx.lineWidth = 2;
     this.ctx.stroke();
-  }
-  move(newPosition, board) {
-    const directions = [
-      [-1, 0], // Left
-      [1, 0], // Right
-      [0, -1], // Down
-      [0, 1], // Up
-      [-1, -1], // Bottom-left corner
-      [1, -1], // Bottom-right corner
-      [-1, 1], // Top-left corner
-      [1, 1], // Top-right corner
-    ];
-
-    // Deep copy the board
-    const newBoard = board.map((row) => [...row]);
-    const validMoves = [];
-    let isPositionFound = false;
-
-    const currentRow = this.position.y;
-    const currentCol = this.position.x;
-
-    const targetCol = newPosition.col;
-    const targetRow = newPosition.row;
-
-    for (let [colOffset, rowOffset] of directions) {
-      let colToCheck = currentCol + colOffset;
-      let rowToCheck = currentRow + rowOffset;
-      let isPathBlocked = false;
-
-      while (
-        colToCheck >= 0 &&
-        colToCheck < 8 &&
-        rowToCheck >= 0 &&
-        rowToCheck < 8 &&
-        !isPathBlocked
-      ) {
-        if (board[rowToCheck][colToCheck] !== 0) {
-          isPathBlocked = true;
-        }
-
-        validMoves.push({ col: colToCheck, row: rowToCheck });
-
-        if (targetCol === colToCheck && targetRow === rowToCheck) {
-          isPositionFound = true;
-          newBoard[currentRow][currentCol] = 0; // Clear current position
-          newBoard[targetRow][targetCol] = this; // Move to new position
-          this.position = { x: targetCol, y: targetRow }; // Update piece's position
-        }
-
-        colToCheck += colOffset;
-        rowToCheck += rowOffset;
-      }
-    }
-
-    console.log(isPositionFound);
-    return { newBoard, isPositionFound };
   }
 }
 

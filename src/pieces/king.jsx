@@ -1,11 +1,20 @@
 import SlidingPiece from "./slidingPiece";
 
 class King extends SlidingPiece {
-  //   constructor(color, position, ctx) {
-  //     this.color = color; // 'white' or 'black'
-  //     this.position = position; // { x, y }
-  //     this.ctx = ctx; // Canvas rendering context
-  //   }
+  constructor(color, position, ctx) {
+    super(color, position, ctx);
+    this.directions = [
+      [-1, 0], // Left
+      [1, 0], // Right
+      [0, -1], // Down
+      [0, 1], // Up
+      [-1, -1], // Top-left
+      [-1, 1], // Top-right
+      [1, -1], // Bottom-left
+      [1, 1], // Bottom-right
+    ];
+    this.moveCount = 1;
+  }
 
   draw(tileSize) {
     const { x, y } = this.position;
