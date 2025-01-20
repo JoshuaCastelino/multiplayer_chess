@@ -68,7 +68,6 @@ class Knight {
   move(newPosition, board) {
     const { col: targetCol, row: targetRow } = newPosition;
     const newBoard = board.map((row) => [...row]);
-    const legalMoves = this.generateLegalMoves(board);
 
     const isMoveLegal = legalMoves.some(
       (move) => move.col === targetCol && move.row === targetRow

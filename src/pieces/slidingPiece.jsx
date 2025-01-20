@@ -16,7 +16,7 @@ class SlidingPiece {
   generateLegalMoves(board) {
     const { x: currentCol, y: currentRow } = this.position;
     const directions = this.directions;
-    const validMoves = [];
+    const legalMoves = [];
 
     for (let [colOffset, rowOffset] of directions) {
       let colToCheck = currentCol + colOffset;
@@ -34,7 +34,7 @@ class SlidingPiece {
           }
         }
 
-        validMoves.push({ col: colToCheck, row: rowToCheck });
+        legalMoves.push({ col: colToCheck, row: rowToCheck });
 
         colToCheck += colOffset;
         rowToCheck += rowOffset;
@@ -42,9 +42,9 @@ class SlidingPiece {
       }
     }
 
-    console.log(validMoves);
+    console.log(legalMoves);
 
-    return validMoves;
+    return legalMoves;
   }
 
   // Function to move the piece if the target position is valid
@@ -53,7 +53,6 @@ class SlidingPiece {
     const { x: currentCol, y: currentRow } = this.position;
 
     const newBoard = board.map((row) => [...row]);
-    const validMoves = this.generateLegalMoves(board);
     const doesExceedMoveCount =
       Math.abs(targetCol - currentCol) > this.moveCount ||
       Math.abs(targetRow - currentRow) > this.moveCount;
@@ -61,7 +60,7 @@ class SlidingPiece {
     let isPositionFound = false;
 
     if (!doesExceedMoveCount) {
-      isPositionFound = validMoves.some(
+      isPositionFound = legalMoves.some(
         (move) => move.col === targetCol && move.row === targetRow
       );
 

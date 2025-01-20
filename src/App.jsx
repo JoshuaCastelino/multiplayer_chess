@@ -85,7 +85,6 @@ function App() {
       let { newBoard, isPositionFound } = selectedPiece.move(
         { col, row },
         board,
-        playerTurn,
         legalMoves
       );
       setLegalMoves([])
