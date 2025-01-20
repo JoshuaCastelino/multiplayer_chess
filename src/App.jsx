@@ -85,8 +85,10 @@ function App() {
       let { newBoard, isPositionFound } = selectedPiece.move(
         { col, row },
         board,
-        playerTurn
+        playerTurn,
+        legalMoves
       );
+      setLegalMoves([])
       if (isPositionFound) {
         // setPlayerTurn(playerTurn == "white" ? "black" : "white")
         setBoard(newBoard);
