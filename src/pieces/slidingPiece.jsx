@@ -12,49 +12,63 @@ class SlidingPiece {
     );
   }
 
-  move(newPosition, board) {
+  // Function to generate legal moves for the piece
+  generateLegalMoves(board) {
+    const { x: currentCol, y: currentRow } = this.position;
     const directions = this.directions;
-
-    // Deep copy the board
-    const newBoard = board.map((row) => [...row]);
     const validMoves = [];
-    let isPositionFound = false;
-
-    const currentRow = this.position.y;
-    const currentCol = this.position.x;
-
-    const targetCol = newPosition.col;
-    const targetRow = newPosition.row;
-
-    const didExceedMaxMoves =
-      Math.abs(targetCol - currentCol) > this.moveCount &&
-      Math.abs(targetRow - currentRow) > this.moveCount;
-
-    if (didExceedMaxMoves) {
-      return { newBoard, isPositionFound };
-    }
 
     for (let [colOffset, rowOffset] of directions) {
       let colToCheck = currentCol + colOffset;
       let rowToCheck = currentRow + rowOffset;
-      let isPathBlocked = false;
+      let pathBlocked = false;
+      let moveInBounds = this.checkBounds(colToCheck, rowToCheck);
 
-      while (this.checkBounds(colToCheck, rowToCheck) && !isPathBlocked) {
-        if (board[rowToCheck][colToCheck] !== 0) {
-          isPathBlocked = true;
+      while (moveInBounds && !pathBlocked) {
+        let pieceInTile = board[rowToCheck][colToCheck];
+        let tileIsNotEmpty = pieceInTile !== 0;
+        if (tileIsNotEmpty) {
+          pathBlocked = true;
+          if (pieceInTile.color == this.color) {
+            break;
+          }
         }
 
         validMoves.push({ col: colToCheck, row: rowToCheck });
 
-        if (targetCol === colToCheck && targetRow === rowToCheck) {
-          isPositionFound = true;
-          newBoard[currentRow][currentCol] = 0;
-          newBoard[targetRow][targetCol] = this;
-          this.position = { x: targetCol, y: targetRow };
-        }
-
         colToCheck += colOffset;
         rowToCheck += rowOffset;
+        moveInBounds = this.checkBounds(colToCheck, rowToCheck);
+      }
+    }
+
+    console.log(validMoves);
+
+    return validMoves;
+  }
+
+  // Function to move the piece if the target position is valid
+  move(newPosition, board) {
+    const { col: targetCol, row: targetRow } = newPosition;
+    const { x: currentCol, y: currentRow } = this.position;
+
+    const newBoard = board.map((row) => [...row]);
+    const validMoves = this.generateLegalMoves(board);
+    const doesExceedMoveCount =
+      Math.abs(targetCol - currentCol) > this.moveCount ||
+      Math.abs(targetRow - currentRow) > this.moveCount;
+
+    let isPositionFound = false;
+
+    if (!doesExceedMoveCount) {
+      isPositionFound = validMoves.some(
+        (move) => move.col === targetCol && move.row === targetRow
+      );
+
+      if (isPositionFound) {
+        newBoard[currentRow][currentCol] = 0;
+        newBoard[targetRow][targetCol] = this;
+        this.position = { x: targetCol, y: targetRow };
       }
     }
 

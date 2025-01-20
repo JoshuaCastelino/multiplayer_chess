@@ -31,11 +31,6 @@ class Rook extends SlidingPiece {
 
     this.ctx.closePath();
   }
-
-  // Method to move the rook
-  move(newPosition) {
-    this.position = newPosition;
-  }
 }
 
 export default Rook;

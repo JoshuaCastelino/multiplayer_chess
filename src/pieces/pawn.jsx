@@ -31,61 +31,102 @@ class Pawn {
     this.context.closePath();
   }
 
-  // Method to move the pawn
   move(newPosition, board) {
-    const direction = this.color == "white" ? -1 : 1;
-    const maxVerticalMovement = this.firstMove == true ? 2 : 1;
-    const { x: currentCol, y: currentRow } = this.position;
-
-    const newRow = newPosition.row;
-    const newCol = newPosition.col;
-
-    const rowDiff = newRow - currentRow;
-    const colDiff = newCol - currentCol;
-
-    const pieceAtNewPosition = board[newRow][newCol];
+    const { col: targetCol, row: targetRow } = newPosition;
     const newBoard = board.map((row) => [...row]);
+    const legalMoves = this.generateLegalMoves(board);
 
-    const isEmptyTile = pieceAtNewPosition == 0;
+    const isMoveLegal = legalMoves.some(
+      (m) => m.col === targetCol && m.row === targetRow
+    );
 
-    const validCapture =
-      !isEmptyTile &&
-      Math.abs(colDiff) == 1 &&
-      rowDiff == direction &&
-      pieceAtNewPosition.color != this.color;
-    const isValidMove =
-      (rowDiff == direction && colDiff == 0) ||
-      (rowDiff == direction * maxVerticalMovement && colDiff == 0);
-    const canBePromoted =
-      (isValidMove && newRow == board[0].length) || newRow == 0;
-
-    let isPositionFound = true;
-
-    if (validCapture || (isValidMove && isEmptyTile)) {
+    if (isMoveLegal) {
       this.firstMove = false;
+
+      const promotionAvailable =
+        (this.color === "white" && targetRow === 0) ||
+        (this.color === "black" && targetRow === board.length - 1);
+
       this.updatePositions(
         newBoard,
-        currentRow,
-        currentCol,
-        newRow,
-        newCol,
-        canBePromoted
+        this.position.y,
+        this.position.x,
+        targetRow,
+        targetCol,
+        promotionAvailable
       );
-    } else {
-      console.log("No valid move made");
-      isPositionFound = false;
+
+      return {
+        newBoard,
+        isPositionFound: true,
+        legalMoves,
+      };
     }
 
-    return { newBoard, isPositionFound };
+    return {
+      newBoard,
+      isPositionFound: false,
+      legalMoves,
+    };
   }
 
-  updatePositions(newBoard, row, col, newRow, newCol, canBePromoted) {
-    let piece = this;
+  generateLegalMoves(board) {
+    const { x: currentCol, y: currentRow } = this.position;
+    const direction = this.color === "white" ? -1 : 1;
+    const legalMoves = [];
 
-    if (canBePromoted) {
+    const oneStepRow = currentRow + direction;
+
+    // Forward 1 step (if empty)
+    if (
+      this.isOnBoard(oneStepRow, currentCol) &&
+      board[oneStepRow][currentCol] === 0
+    ) {
+      legalMoves.push({ row: oneStepRow, col: currentCol });
+
+      // Forward 2 steps (if empty and first move)
+      if (this.firstMove) {
+        const twoStepRow = currentRow + 2 * direction;
+        if (
+          this.isOnBoard(twoStepRow, currentCol) &&
+          board[twoStepRow][currentCol] === 0
+        ) {
+          legalMoves.push({ row: twoStepRow, col: currentCol });
+        }
+      }
+    }
+
+    // Capture diagonals (left and right)
+    [-1, 1].forEach((offset) => {
+      const captureCol = currentCol + offset;
+      if (this.isOnBoard(oneStepRow, captureCol)) {
+        const occupant = board[oneStepRow][captureCol];
+        if (occupant !== 0) {
+          legalMoves.push({ row: oneStepRow, col: captureCol });
+        }
+      }
+    });
+
+    return legalMoves;
+  }
+
+  isOnBoard(row, col) {
+    return row >= 0 && row < 8 && col >= 0 && col < 8;
+  }
+
+  updatePositions(
+    newBoard,
+    oldRow,
+    oldCol,
+    newRow,
+    newCol,
+    promotionAvailable
+  ) {
+    let piece = this;
+    if (promotionAvailable) {
       piece = new Queen(this.color, { y: newRow, x: newCol }, this.context);
     }
-    newBoard[row][col] = 0;
+    newBoard[oldRow][oldCol] = 0;
     newBoard[newRow][newCol] = piece;
     this.position = { x: newCol, y: newRow };
   }

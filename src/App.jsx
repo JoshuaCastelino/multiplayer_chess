@@ -71,7 +71,7 @@ function App() {
         playerTurn
       );
       if (isPositionFound) {
-        setPlayerTurn(playerTurn == "white" ? "black" : "white");
+        // setPlayerTurn(playerTurn == "white" ? "black" : "white");
         setBoard(newBoard);
       }
       setSelectedPiece(undefined);
