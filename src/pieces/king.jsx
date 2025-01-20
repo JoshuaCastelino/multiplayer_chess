@@ -23,10 +23,10 @@ class King extends SlidingPiece {
     const centerX = x * tileSize + tileSize / 2;
     const centerY = y * tileSize + tileSize / 2;
 
-    // Adjust size for the diamond (equal width and height)
+    // Adjust size for the diamond 
     const halfSize = 22.5;
 
-    // Calculate the diamond points (rotated square)
+    // Calculate the diamond points
     const points = [
       { x: centerX, y: centerY - halfSize }, // Top
       { x: centerX + halfSize, y: centerY }, // Right

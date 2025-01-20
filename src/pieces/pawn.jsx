@@ -101,7 +101,7 @@ class Pawn {
       const captureCol = currentCol + offset;
       if (this.isOnBoard(oneStepRow, captureCol)) {
         const occupant = board[oneStepRow][captureCol];
-        if (occupant !== 0) {
+        if (occupant !== 0 && occupant.color !== this.color) {
           legalMoves.push({ row: oneStepRow, col: captureCol });
         }
       }

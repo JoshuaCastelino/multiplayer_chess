@@ -14,7 +14,8 @@ function App() {
 
   const [selectedPiece, setSelectedPiece] = useState(undefined);
   const [playerTurn, setPlayerTurn] = useState("white");
-
+  const [legalMoves, setLegalMoves] = useState([])
+  // Called at first render
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
@@ -24,21 +25,35 @@ function App() {
     setBoard(initialBoard);
   }, []);
 
+
+  // Called when the board is updated
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawBoard(boardSize, ctx, tileSize);
-    for (let row of board) {
-      for (let piece of row) {
-        if (piece != 0) {
-          piece.draw(tileSize);
-        }
-      }
-    }
+    redrawBoard(ctx);
   }, [board]);
 
-  useEffect(() => {}, [selectedPiece]);
+  // Called when a new piece is selected
+  useEffect(() => {
+    if (!canvasRef.current || !legalMoves) return;
+  
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    // Clear canvasRed overlay
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    redrawBoard(ctx);
+
+    // Draw red transparent overlays for each legal move
+    legalMoves.forEach(({ row, col }) => {
+      const x = col * tileSize;
+      const y = row * tileSize;
+  
+      ctx.fillStyle = "rgba(255, 0, 0, 0.5)"; // Red with 50% transparency
+      ctx.fillRect(x, y, tileSize, tileSize);
+    });
+  }, [selectedPiece, legalMoves]);
+  
 
   const pointToCoordinate = (e, tileSize, board) => {
     const canvas = canvasRef.current;
@@ -64,6 +79,8 @@ function App() {
 
     if (isOwnPiece) {
       setSelectedPiece(piece);
+      setLegalMoves(piece.generateLegalMoves(board))
+
     } else if (selectedPiece && (isEmptyTile || !isOwnPiece)) {
       let { newBoard, isPositionFound } = selectedPiece.move(
         { col, row },
@@ -71,7 +88,7 @@ function App() {
         playerTurn
       );
       if (isPositionFound) {
-        // setPlayerTurn(playerTurn == "white" ? "black" : "white");
+        // setPlayerTurn(playerTurn == "white" ? "black" : "white")
         setBoard(newBoard);
       }
       setSelectedPiece(undefined);
@@ -95,6 +112,17 @@ function App() {
       ></canvas>
     </div>
   );
+
+  function redrawBoard(ctx) {
+    drawBoard(boardSize, ctx, tileSize);
+    for (let row of board) {
+      for (let piece of row) {
+        if (piece != 0) {
+          piece.draw(tileSize);
+        }
+      }
+    }
+  }
 }
 
 export default App;
