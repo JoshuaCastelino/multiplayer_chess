@@ -65,32 +65,27 @@ class Knight {
     return legalMoves;
   }
 
-  move(newPosition, board) {
+
+  move(newPosition, board, legalMoves) {
     const { col: targetCol, row: targetRow } = newPosition;
+    const { x: currentCol, y: currentRow } = this.position;
+
     const newBoard = board.map((row) => [...row]);
 
-    const isMoveLegal = legalMoves.some(
+    let isPositionFound = false;
+
+    isPositionFound = legalMoves.some(
       (move) => move.col === targetCol && move.row === targetRow
     );
 
     if (isMoveLegal) {
-      const { x: oldCol, y: oldRow } = this.position;
-      newBoard[oldRow][oldCol] = 0;
+      newBoard[currentRow][currentCol] = 0;
       newBoard[targetRow][targetCol] = this;
       this.position = { x: targetCol, y: targetRow };
-
-      return {
-        newBoard,
-        isPositionFound: true,
-        legalMoves,
-      };
     }
+  
 
-    return {
-      newBoard,
-      isPositionFound: false,
-      legalMoves,
-    };
+    return { newBoard, isPositionFound };
   }
 }
 

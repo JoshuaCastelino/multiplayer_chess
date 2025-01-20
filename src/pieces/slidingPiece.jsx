@@ -3,10 +3,9 @@ class SlidingPiece {
     this.color = color;
     this.position = position;
     this.ctx = ctx;
-    this.moveCount = 8;
   }
 
-  checkBounds(colToCheck, rowToCheck) {
+  isOnBoard(colToCheck, rowToCheck) {
     return (
       colToCheck >= 0 && colToCheck < 8 && rowToCheck >= 0 && rowToCheck < 8
     );
@@ -22,7 +21,7 @@ class SlidingPiece {
       let colToCheck = currentCol + colOffset;
       let rowToCheck = currentRow + rowOffset;
       let pathBlocked = false;
-      let moveInBounds = this.checkBounds(colToCheck, rowToCheck);
+      let moveInBounds = this.isOnBoard(colToCheck, rowToCheck);
 
       while (moveInBounds && !pathBlocked) {
         let pieceInTile = board[rowToCheck][colToCheck];
@@ -38,7 +37,7 @@ class SlidingPiece {
 
         colToCheck += colOffset;
         rowToCheck += rowOffset;
-        moveInBounds = this.checkBounds(colToCheck, rowToCheck);
+        moveInBounds = this.isOnBoard(colToCheck, rowToCheck);
       }
     }
 
@@ -48,29 +47,24 @@ class SlidingPiece {
   }
 
   // Function to move the piece if the target position is valid
-  move(newPosition, board) {
+  move(newPosition, board, legalMoves) {
     const { col: targetCol, row: targetRow } = newPosition;
     const { x: currentCol, y: currentRow } = this.position;
 
     const newBoard = board.map((row) => [...row]);
-    const doesExceedMoveCount =
-      Math.abs(targetCol - currentCol) > this.moveCount ||
-      Math.abs(targetRow - currentRow) > this.moveCount;
 
     let isPositionFound = false;
 
-    if (!doesExceedMoveCount) {
-      isPositionFound = legalMoves.some(
-        (move) => move.col === targetCol && move.row === targetRow
-      );
+    isPositionFound = legalMoves.some(
+      (move) => move.col === targetCol && move.row === targetRow
+    );
 
-      if (isPositionFound) {
-        newBoard[currentRow][currentCol] = 0;
-        newBoard[targetRow][targetCol] = this;
-        this.position = { x: targetCol, y: targetRow };
-      }
+    if (isPositionFound) {
+      newBoard[currentRow][currentCol] = 0;
+      newBoard[targetRow][targetCol] = this;
+      this.position = { x: targetCol, y: targetRow };
     }
-
+  
     return { newBoard, isPositionFound };
   }
 }

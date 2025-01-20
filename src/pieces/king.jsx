@@ -1,8 +1,10 @@
 import SlidingPiece from "./slidingPiece";
 
-class King extends SlidingPiece {
+class King  {
   constructor(color, position, ctx) {
-    super(color, position, ctx);
+    this.color = color
+    this.position = position
+    this.ctx = ctx
     this.directions = [
       [-1, 0], // Left
       [1, 0], // Right
@@ -13,7 +15,6 @@ class King extends SlidingPiece {
       [1, -1], // Bottom-left
       [1, 1], // Bottom-right
     ];
-    this.moveCount = 1;
   }
 
   draw(tileSize) {
@@ -48,6 +49,63 @@ class King extends SlidingPiece {
     this.ctx.strokeStyle = this.color === "white" ? "#000000" : "#FFFFFF";
     this.ctx.lineWidth = 2;
     this.ctx.stroke();
+  }
+
+  isOnBoard(colToCheck, rowToCheck) {
+    return (
+      colToCheck >= 0 && colToCheck < 8 && rowToCheck >= 0 && rowToCheck < 8
+    );
+  }
+
+  generateLegalMoves(board) {
+    const { x: currentCol, y: currentRow } = this.position;
+    const directions = this.directions;
+    const legalMoves = [];
+
+    for (let [colOffset, rowOffset] of directions) {
+      let colToCheck = currentCol + colOffset;
+      let rowToCheck = currentRow + rowOffset;
+      const moveNotInBounds = !this.isOnBoard(colToCheck, rowToCheck);
+
+
+      if (moveNotInBounds){
+        continue;
+      }
+
+      const pieceInTile = board[rowToCheck][colToCheck];
+      const tileIsEmpty = pieceInTile == 0;
+      const tileOccupiedBySameColour = !tileIsEmpty && pieceInTile.color == this.color
+
+      if (!tileOccupiedBySameColour || tileIsEmpty){
+        legalMoves.push({col: colToCheck, row: rowToCheck})
+      }
+    }
+
+    console.log(legalMoves);
+
+    return legalMoves;
+  }
+
+  move(newPosition, board, legalMoves) {
+    const { col: targetCol, row: targetRow } = newPosition;
+    const { x: currentCol, y: currentRow } = this.position;
+
+    const newBoard = board.map((row) => [...row]);
+
+    let isPositionFound = false;
+
+    isPositionFound = legalMoves.some(
+      (move) => move.col === targetCol && move.row === targetRow
+    );
+
+    if (isPositionFound) {
+      newBoard[currentRow][currentCol] = 0;
+      newBoard[targetRow][targetCol] = this;
+      this.position = { x: targetCol, y: targetRow };
+    }
+  
+
+    return { newBoard, isPositionFound };
   }
 }
 

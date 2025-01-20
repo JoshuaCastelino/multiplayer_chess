@@ -11,6 +11,8 @@ function App() {
   const tileSize = 70;
   const boardSize = 8;
   const [board, setBoard] = useState([]);
+  const [threatMapBlack, setThreatMapBlack] = useState([])
+  const [threatMapWhite, setThreatMapWhite] = useState([])
 
   const [selectedPiece, setSelectedPiece] = useState(undefined);
   const [playerTurn, setPlayerTurn] = useState("white");
@@ -20,9 +22,10 @@ function App() {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     const rect = canvas.getBoundingClientRect();
-
-    let initialBoard = initialise(ctx, tileSize, boardSize);
-    setBoard(initialBoard);
+    const { board, threatMapWhite, threatMapBlack } = initialise(ctx, tileSize, boardSize);
+    setBoard(board);
+    setThreatMapWhite(threatMapWhite)
+    setThreatMapBlack(threatMapBlack)
   }, []);
 
 
@@ -53,6 +56,104 @@ function App() {
       ctx.fillRect(x, y, tileSize, tileSize);
     });
   }, [selectedPiece, legalMoves]);
+
+
+  useEffect(() => {
+    if (!canvasRef.current || !threatMapWhite) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    // Clear canvasRed overlay
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    redrawBoard(ctx);
+
+
+    for (let row = 0 ; row < threatMapWhite.length ; row ++){
+      for (let col = 0 ; col < threatMapWhite.length ; col ++){
+        const x = col * tileSize;
+        const y = row * tileSize;
+        if (threatMapWhite[row][col] === 1){
+          // ctx.fillStyle = "rgba(255, 0, 0, 0.5)"; // Red with 50% transparency
+          ctx.fillRect(x, y, tileSize, tileSize);
+        }
+        else if (threatMapBlack[row][col] === 1){
+          ctx.fillStyle = "rgba(0, 51, 255, 0.78)"; // Red with 50% transparency
+          ctx.fillRect(x, y, tileSize, tileSize);
+        }        
+      }
+    }
+
+  }, [threatMapWhite, threatMapBlack]);
+
+
+
+  function updateThreatMap(pieceColour, threatMap, initialPosition, newBoard){
+    function isOnBoard(colToCheck, rowToCheck) {
+      return colToCheck >= 0 && colToCheck < 8 && rowToCheck >= 0 && rowToCheck < 8;
+    }
+
+    const newThreatMap = threatMap.map((row) => [...row]);
+    console.log("threat map", newThreatMap)
+
+    const directions = [
+      [-1, 0], // Left
+      [1, 0], // Right
+      [0, -1], // Down
+      [0, 1], // Up
+      [-1, -1], // Bottom-left corner
+      [1, -1], // Bottom-right corner
+      [-1, 1], // Top-left corner
+      [1, 1], // Top-right corner
+    ];
+
+    // Find the pieces that may result in a threat map update
+    const { x: currentCol, y: currentRow } = initialPosition;
+    const piecesToUpdate = [];
+    for (let [colOffset, rowOffset] of directions) {
+      let colToCheck = currentCol + colOffset;
+      let rowToCheck = currentRow + rowOffset;
+      let pathBlocked = false;
+      let moveInBounds = isOnBoard(colToCheck, rowToCheck)
+
+      while (moveInBounds && !pathBlocked) {
+        let pieceInTile = board[rowToCheck][colToCheck];
+        let tileIsNotEmpty = pieceInTile !== 0;
+        if (tileIsNotEmpty) {
+          pathBlocked = true;
+          if (pieceInTile.color === pieceColour) {
+            piecesToUpdate.push(pieceInTile)
+          }
+        }
+
+        colToCheck += colOffset;
+        rowToCheck += rowOffset;
+        moveInBounds = isOnBoard(colToCheck, rowToCheck)
+      }
+    }
+
+    // Calculate the positions in the threatmap
+    let positionsInThreat = []
+    for (let piece of piecesToUpdate){
+      if (piece instanceof Pawn){
+        const oneStepRow = currentRow + piece.direction;
+        [-1, 1].forEach((offset) => {
+          const captureCol = currentCol + offset;
+          if (isOnBoard(oneStepRow, captureCol)) {
+            positionsInThreat.push({row: oneStepRow, col: captureCol})
+          }
+        });
+      } 
+      else{
+        let threatPositions = piece.generateLegalMoves(newBoard)
+        positionsInThreat = positionsInThreat.concat(threatPositions)
+      }
+    }
+    // Update the threamap
+    for (let {row, col} of positionsInThreat){
+      newThreatMap[row][col] = 1
+    }
+    return newThreatMap
+  }
   
 
   const pointToCoordinate = (e, tileSize, board) => {
@@ -65,16 +166,16 @@ function App() {
     const col = Math.floor(x / tileSize);
     const row = Math.floor(y / tileSize);
 
-    const isInBounds =
-      row >= 0 && row < board.length && col >= 0 && col < board[0].length;
+    const isInBounds = row >= 0 && row < board.length && col >= 0 && col < board[0].length;
 
     if (!isInBounds) {
       return;
     }
 
-    let piece = board[row][col];
-
-    const isOwnPiece = piece.color == playerTurn;
+    const piece = board[row][col];
+    const threatMap = playerTurn === "white" ? threatMapWhite : threatMapBlack
+    const setThreatMap = playerTurn === "white" ? setThreatMapWhite : setThreatMapBlack
+    const isOwnPiece = piece.color === playerTurn;
     const isEmptyTile = piece == 0;
 
     if (isOwnPiece) {
@@ -82,15 +183,19 @@ function App() {
       setLegalMoves(piece.generateLegalMoves(board))
 
     } else if (selectedPiece && (isEmptyTile || !isOwnPiece)) {
+      let pieceInitialPos = selectedPiece.position
+      let newPos = { col, row }
       let { newBoard, isPositionFound } = selectedPiece.move(
-        { col, row },
+        newPos,
         board,
         legalMoves
       );
       setLegalMoves([])
       if (isPositionFound) {
-        // setPlayerTurn(playerTurn == "white" ? "black" : "white")
+        setPlayerTurn(playerTurn == "white" ? "black" : "white")
         setBoard(newBoard);
+        let newThreatMap = updateThreatMap(selectedPiece.color, threatMap, pieceInitialPos, newBoard)
+        setThreatMap(newThreatMap)
       }
       setSelectedPiece(undefined);
     }
@@ -139,14 +244,9 @@ function drawBoard(boardSize, ctx, tileSize) {
 }
 
 function initialise(ctx, tileSize, boardSize) {
-  const board = [];
-  for (let i = 0; i < boardSize; i++) {
-    const innerBoard = [];
-    for (var j = 0; j < boardSize; j++) {
-      innerBoard.push(0);
-    }
-    board.push(innerBoard);
-  }
+  const board = new Array(8).fill(null).map(() => new Array(8).fill(0));
+  const threatMapWhite = new Array(8).fill(null).map(() => new Array(8).fill(0));
+  const threatMapBlack = new Array(8).fill(null).map(() => new Array(8).fill(0));
 
   drawBoard(boardSize, ctx, tileSize);
 
@@ -198,7 +298,12 @@ function initialise(ctx, tileSize, boardSize) {
   for (let i = 0; i < 8; i++) {
     board[1][i] = new Pawn("black", { x: i, y: 1 }, ctx);
     board[6][i] = new Pawn("white", { x: i, y: 6 }, ctx);
+
+    threatMapBlack[2][i] = 1
+    threatMapWhite[5][i] = 1
+
   }
+
 
   for (const { type, positions } of pieces) {
     for (let i = 0; i < positions.length; i++) {
@@ -207,6 +312,7 @@ function initialise(ctx, tileSize, boardSize) {
       board[position.y][position.x] = new type(color, position, ctx);
     }
   }
+  
 
-  return board;
+  return {board, threatMapWhite, threatMapBlack};
 }
