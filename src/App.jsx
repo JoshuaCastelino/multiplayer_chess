@@ -34,7 +34,6 @@ function App() {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    redrawBoard(ctx);
   }, [board]);
 
   // Called when a new piece is selected
@@ -59,7 +58,7 @@ function App() {
 
 
   useEffect(() => {
-    if (!canvasRef.current || !threatMapWhite) return;
+    if (!canvasRef.current || !threatMapWhite || !threatMapBlack) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
@@ -73,86 +72,57 @@ function App() {
         const x = col * tileSize;
         const y = row * tileSize;
         if (threatMapWhite[row][col] === 1){
-          // ctx.fillStyle = "rgba(255, 0, 0, 0.5)"; // Red with 50% transparency
+          ctx.fillStyle = "rgba(255, 0, 0, 0.25)"; 
           ctx.fillRect(x, y, tileSize, tileSize);
         }
-        else if (threatMapBlack[row][col] === 1){
-          ctx.fillStyle = "rgba(0, 51, 255, 0.78)"; // Red with 50% transparency
+        if (threatMapBlack[row][col] === 1){
+          ctx.fillStyle = "rgba(0, 51, 255, 0.25)"; // Red with 50% transparency
           ctx.fillRect(x, y, tileSize, tileSize);
         }        
       }
     }
 
-  }, [threatMapWhite, threatMapBlack]);
+  }, [threatMapWhite]);
 
 
 
-  function updateThreatMap(pieceColour, threatMap, initialPosition, newBoard){
+  function updateThreatMaps(newBoard){
     function isOnBoard(colToCheck, rowToCheck) {
       return colToCheck >= 0 && colToCheck < 8 && rowToCheck >= 0 && rowToCheck < 8;
     }
+    const newThreatMapBlack = new Array(8).fill(null).map(() => new Array(8).fill(0));
+    const newThreatMapWhite = new Array(8).fill(null).map(() => new Array(8).fill(0));
 
-    const newThreatMap = threatMap.map((row) => [...row]);
-    console.log("threat map", newThreatMap)
+    for (let row = 0; row < boardSize; row ++){
+      for (let col = 0; col < boardSize; col ++){
+        let piece = newBoard[row][col]
 
-    const directions = [
-      [-1, 0], // Left
-      [1, 0], // Right
-      [0, -1], // Down
-      [0, 1], // Up
-      [-1, -1], // Bottom-left corner
-      [1, -1], // Bottom-right corner
-      [-1, 1], // Top-left corner
-      [1, 1], // Top-right corner
-    ];
+        if (piece === 0) continue;
+        let pieceColour = piece.color
+        let colorThreatMap = pieceColour == "white" ? newThreatMapWhite : newThreatMapBlack
+        
+        if (piece instanceof Pawn){
+          const direction = pieceColour === "white" ? -1 : 1;
+          const oneStepRow = row + direction;
 
-    // Find the pieces that may result in a threat map update
-    const { x: currentCol, y: currentRow } = initialPosition;
-    const piecesToUpdate = [];
-    for (let [colOffset, rowOffset] of directions) {
-      let colToCheck = currentCol + colOffset;
-      let rowToCheck = currentRow + rowOffset;
-      let pathBlocked = false;
-      let moveInBounds = isOnBoard(colToCheck, rowToCheck)
-
-      while (moveInBounds && !pathBlocked) {
-        let pieceInTile = board[rowToCheck][colToCheck];
-        let tileIsNotEmpty = pieceInTile !== 0;
-        if (tileIsNotEmpty) {
-          pathBlocked = true;
-          if (pieceInTile.color === pieceColour) {
-            piecesToUpdate.push(pieceInTile)
+          [-1, 1].forEach((offset) => {
+            const captureCol = col + offset;
+            console.log({oneStepRow, captureCol})
+            if (isOnBoard(oneStepRow, captureCol)) {
+              colorThreatMap[oneStepRow][captureCol] = 1
+            }
+          });
+        }
+        else{
+          let threatPositions = piece.generateLegalMoves(newBoard)
+          for (let {row, col} of threatPositions){
+            colorThreatMap[row][col] = 1
           }
         }
-
-        colToCheck += colOffset;
-        rowToCheck += rowOffset;
-        moveInBounds = isOnBoard(colToCheck, rowToCheck)
       }
     }
-
-    // Calculate the positions in the threatmap
-    let positionsInThreat = []
-    for (let piece of piecesToUpdate){
-      if (piece instanceof Pawn){
-        const oneStepRow = currentRow + piece.direction;
-        [-1, 1].forEach((offset) => {
-          const captureCol = currentCol + offset;
-          if (isOnBoard(oneStepRow, captureCol)) {
-            positionsInThreat.push({row: oneStepRow, col: captureCol})
-          }
-        });
-      } 
-      else{
-        let threatPositions = piece.generateLegalMoves(newBoard)
-        positionsInThreat = positionsInThreat.concat(threatPositions)
-      }
-    }
-    // Update the threamap
-    for (let {row, col} of positionsInThreat){
-      newThreatMap[row][col] = 1
-    }
-    return newThreatMap
+    console.log(newThreatMapBlack)
+    return {newThreatMapWhite, newThreatMapBlack}
   }
   
 
@@ -173,8 +143,6 @@ function App() {
     }
 
     const piece = board[row][col];
-    const threatMap = playerTurn === "white" ? threatMapWhite : threatMapBlack
-    const setThreatMap = playerTurn === "white" ? setThreatMapWhite : setThreatMapBlack
     const isOwnPiece = piece.color === playerTurn;
     const isEmptyTile = piece == 0;
 
@@ -183,7 +151,6 @@ function App() {
       setLegalMoves(piece.generateLegalMoves(board))
 
     } else if (selectedPiece && (isEmptyTile || !isOwnPiece)) {
-      let pieceInitialPos = selectedPiece.position
       let newPos = { col, row }
       let { newBoard, isPositionFound } = selectedPiece.move(
         newPos,
@@ -194,8 +161,9 @@ function App() {
       if (isPositionFound) {
         setPlayerTurn(playerTurn == "white" ? "black" : "white")
         setBoard(newBoard);
-        let newThreatMap = updateThreatMap(selectedPiece.color, threatMap, pieceInitialPos, newBoard)
-        setThreatMap(newThreatMap)
+        let {newThreatMapWhite, newThreatMapBlack} =  updateThreatMaps(newBoard)
+        setThreatMapWhite(newThreatMapWhite)
+        setThreatMapBlack(newThreatMapBlack)
       }
       setSelectedPiece(undefined);
     }
