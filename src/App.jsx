@@ -58,30 +58,36 @@ function App() {
 
 
   useEffect(() => {
-
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
-
+  
+    // Clear and redraw the board first
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     redrawBoard(ctx);
 
+    let red = "rgba(255, 0, 0, 0.5)"
+    let blue = "rgba(0, 50, 255, 0.5)"
 
-    for (let row = 0 ; row < threatMapWhite.length ; row ++){
-      for (let col = 0 ; col < threatMapWhite.length ; col ++){
-        const x = col * tileSize;
-        const y = row * tileSize;
-        if (threatMapWhite[row][col].length > 0){
-          ctx.fillStyle = "rgba(255, 0, 0, 0.25)"; 
+    function colourThreatMap(threatMap, colour) {
+      Object.keys(threatMap).forEach((key) => {
+        const threats = threatMap[key];
+        if (threats && threats.length > 0) {
+          const row = key[0]
+          const col = key[1]
+          const x = col * tileSize;
+          const y = row * tileSize;
+          ctx.fillStyle = colour;
           ctx.fillRect(x, y, tileSize, tileSize);
         }
-        if (threatMapBlack[row][col].length > 0){
-          ctx.fillStyle = "rgba(0, 51, 255, 0.25)";
-          ctx.fillRect(x, y, tileSize, tileSize);
-        }        
-      }
+      });
     }
+  
+    // Draw threatened tiles for White
+    colourThreatMap(threatMapWhite, red);
+    colourThreatMap(threatMapBlack, blue)
 
-  }, [threatMapWhite]);
+  }, [threatMapWhite, threatMapBlack, tileSize]);
+  
 
 
   const pointToCoordinate = (e, tileSize, board) => {
@@ -140,8 +146,8 @@ function App() {
     >
       <canvas
         ref={canvasRef}
-        width={tileSize * 8}
-        height={tileSize * 8}
+        width={tileSize * boardSize}
+        height={tileSize * boardSize}
         style={{ border: "1px solid black" }}
       ></canvas>
     </div>
@@ -172,8 +178,8 @@ function drawBoard(boardSize, ctx, tileSize) {
 }
 
 function initialise(ctx, tileSize, boardSize) {
-  const board = new Array(8).fill(null).map(() => new Array(8).fill(0));
-  
+  const board = new Array(boardSize).fill(null).map(() => new Array(boardSize).fill(0));
+
   drawBoard(boardSize, ctx, tileSize);
 
   const pieces = [
@@ -241,47 +247,62 @@ function initialise(ctx, tileSize, boardSize) {
   return {board, threatMapWhite, threatMapBlack};
 }
 
-function updateThreatMaps(newBoard, boardSize){
+function updateThreatMaps(newBoard, boardSize) {
   function isOnBoard(colToCheck, rowToCheck) {
-    return colToCheck >= 0 && colToCheck < 8 && rowToCheck >= 0 && rowToCheck < 8;
+    return (
+      colToCheck >= 0 &&
+      colToCheck < boardSize &&
+      rowToCheck >= 0 &&
+      rowToCheck < boardSize
+    );
   }
-  const newThreatMapBlack = new Array(8).fill(null).map(() => new Array(8).fill().map(() => []));
-  const newThreatMapWhite = new Array(8).fill(null).map(() => new Array(8).fill().map(() => []));
-  
 
-  for (let row = 0; row < boardSize; row ++){
-    for (let col = 0; col < boardSize; col ++){
-      let piece = newBoard[row][col]
+  // Use string keys (row,col) in place of 2D arrays
+  const newThreatMapBlack = {};
+  const newThreatMapWhite = {};
 
+  for (let row = 0; row < boardSize; row++) {
+    for (let col = 0; col < boardSize; col++) {
+      const piece = newBoard[row][col];
       if (piece === 0) continue;
-      let pieceColour = piece.color
-      let colorThreatMap = pieceColour == "white" ? newThreatMapWhite : newThreatMapBlack
-      
-      if (piece instanceof Pawn){
+
+      const pieceColour = piece.color;
+      const colorThreatMap =
+        pieceColour === "white" ? newThreatMapWhite : newThreatMapBlack;
+
+      if (piece instanceof Pawn) {
+        console.log("in here")
         const direction = pieceColour === "white" ? -1 : 1;
         const oneStepRow = row + direction;
 
         [-1, 1].forEach((offset) => {
           const captureCol = col + offset;
           if (isOnBoard(captureCol, oneStepRow)) {
-            colorThreatMap[oneStepRow][captureCol].push(piece)
+            const key = `${oneStepRow}${captureCol}`;
+            colorThreatMap[key] = colorThreatMap[key] || [];
+            colorThreatMap[key].push(piece);
           }
         });
-      }
-      else{
-        let {legalMoves, isProtecting} = piece.generateLegalMoves(newBoard)
-        console.log(isProtecting.length)
-        for (let {row, col} of legalMoves){
-          colorThreatMap[row][col].push(piece)
+      } else {
+        const { legalMoves, isProtecting } = piece.generateLegalMoves(newBoard);
+        
+        for (let { row: moveRow, col: moveCol } of legalMoves) {
+          const key = `${moveRow}${moveCol}`;
+          colorThreatMap[key] = colorThreatMap[key] || [];
+          colorThreatMap[key].push(piece);
         }
-        for (let {row, col} of isProtecting){
-          console.log("Protecting")
-          colorThreatMap[row][col].push(piece)
+
+        for (let { row: protectRow, col: protectCol } of isProtecting) {
+          const key = `${protectRow}${protectCol}`;
+          colorThreatMap[key] = colorThreatMap[key] || [];
+          colorThreatMap[key].push(piece);
         }
       }
     }
   }
-  console.log("here")
-  console.log(newThreatMapWhite)
-  return {newThreatMapWhite, newThreatMapBlack}
+
+  return {
+    newThreatMapWhite,
+    newThreatMapBlack,
+  };
 }
