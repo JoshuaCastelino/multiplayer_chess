@@ -1,6 +1,6 @@
 class Knight {
-  constructor(color, position, ctx) {
-    this.color = color;
+  constructor(colour, position, ctx) {
+    this.colour = colour;
     this.position = position;
     this.ctx = ctx;
   }
@@ -22,7 +22,7 @@ class Knight {
     const bottomY = centerY + height / 2;
     const bottomX2 = centerX + bottomWidth / 2;
 
-    this.ctx.fillStyle = this.color;
+    this.ctx.fillStyle = this.colour;
     this.ctx.beginPath();
     this.ctx.moveTo(topX1, topY);
     this.ctx.lineTo(topX2, topY);
@@ -31,7 +31,7 @@ class Knight {
     this.ctx.closePath();
     this.ctx.fill();
 
-    this.ctx.strokeStyle = this.color === "white" ? "#000000" : "#FFFFFF";
+    this.ctx.strokeStyle = this.colour === "white" ? "#000000" : "#FFFFFF";
     this.ctx.lineWidth = 2;
     this.ctx.stroke();
   }
@@ -57,18 +57,16 @@ class Knight {
       const { row, col } = move;
       if (row >= 0 && row < boardSize && col >= 0 && col < boardSize) {
         const occupant = board[row][col];
-        if (occupant === 0 || occupant.color !== this.color) {
+        if (occupant === 0 || occupant.colour !== this.colour) {
           legalMoves.push({ row, col });
-        }
-        else{
+        } else {
           isProtecting.push({ row, col });
         }
       }
     }
 
-    return {legalMoves, isProtecting};
+    return { legalMoves, isProtecting };
   }
-
 
   move(newPosition, board, legalMoves) {
     const { col: targetCol, row: targetRow } = newPosition;
@@ -87,7 +85,6 @@ class Knight {
       newBoard[targetRow][targetCol] = this;
       this.position = { x: targetCol, y: targetRow };
     }
-  
 
     return { newBoard, isPositionFound };
   }

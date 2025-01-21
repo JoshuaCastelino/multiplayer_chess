@@ -1,6 +1,6 @@
 class SlidingPiece {
-  constructor(color, position, ctx) {
-    this.color = color;
+  constructor(colour, position, ctx) {
+    this.colour = colour;
     this.position = position;
     this.ctx = ctx;
   }
@@ -31,8 +31,8 @@ class SlidingPiece {
         let tileIsNotEmpty = pieceInTile !== 0;
         if (tileIsNotEmpty) {
           pathBlocked = true;
-          if (pieceInTile.color == this.color) {
-            isProtecting.push({col: colToCheck, row: rowToCheck})
+          if (pieceInTile.colour == this.colour) {
+            isProtecting.push({ col: colToCheck, row: rowToCheck });
             break;
           }
         }
@@ -45,7 +45,7 @@ class SlidingPiece {
       }
     }
 
-    return {legalMoves, isProtecting};
+    return { legalMoves, isProtecting };
   }
 
   // Function to move the piece if the target position is valid
@@ -66,7 +66,7 @@ class SlidingPiece {
       newBoard[targetRow][targetCol] = this;
       this.position = { x: targetCol, y: targetRow };
     }
-  
+
     return { newBoard, isPositionFound };
   }
 }

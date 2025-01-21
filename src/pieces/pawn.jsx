@@ -1,8 +1,8 @@
 import Queen from "./queen";
 
 class Pawn {
-  constructor(color, position, context) {
-    this.color = color; // 'white' or 'black'
+  constructor(colour, position, context) {
+    this.colour = colour; // 'white' or 'black'
     this.position = position;
     this.context = context;
     this.firstMove = true;
@@ -20,12 +20,12 @@ class Pawn {
     // Draw a circle representing the pawn
     this.context.beginPath();
     this.context.arc(pixelX, pixelY, radius, 0, Math.PI * 2);
-    this.context.fillStyle = this.color === "white" ? "#FFFFFF" : "#000000"; 
+    this.context.fillStyle = this.colour === "white" ? "#FFFFFF" : "#000000";
     this.context.fill();
 
     // Draw the outline
     this.context.lineWidth = 2;
-    this.context.strokeStyle = this.color === "white" ? "#000000" : "#FFFFFF"; 
+    this.context.strokeStyle = this.colour === "white" ? "#000000" : "#FFFFFF";
     this.context.stroke();
 
     this.context.closePath();
@@ -41,13 +41,18 @@ class Pawn {
       (m) => m.col === targetCol && m.row === targetRow
     );
     // Don't need to check colour, although this feels a little hacky, dont really want to add the additional condition
-    const promotionAvailable = targetRow === 0 || targetRow === board.length - 1
+    const promotionAvailable =
+      targetRow === 0 || targetRow === board.length - 1;
 
     if (isPositionFound) {
       this.firstMove = false;
       let piece = this;
       if (promotionAvailable) {
-        piece = new Queen(this.color, { y: targetRow, x: targetCol }, this.context);
+        piece = new Queen(
+          this.colour,
+          { y: targetRow, x: targetCol },
+          this.context
+        );
       }
 
       newBoard[currentRow][currentCol] = 0;
@@ -56,25 +61,31 @@ class Pawn {
     }
 
     return {
-      newBoard, isPositionFound,
+      newBoard,
+      isPositionFound,
     };
   }
 
   generateLegalMoves(board) {
     const { x: currentCol, y: currentRow } = this.position;
-    const direction = this.color === "white" ? -1 : 1;
+    const direction = this.colour === "white" ? -1 : 1;
     const legalMoves = [];
     const isProtecting = [];
 
     const oneStepRow = currentRow + direction;
 
     // Forward 1 step (if empty)
-    if (this.isOnBoard(oneStepRow, currentCol) && board[oneStepRow][currentCol] === 0) {
+    if (
+      this.isOnBoard(oneStepRow, currentCol) &&
+      board[oneStepRow][currentCol] === 0
+    ) {
       legalMoves.push({ row: oneStepRow, col: currentCol });
       // Forward 2 steps (if empty and first move)
       if (this.firstMove) {
         const twoStepRow = currentRow + 2 * direction;
-        if (this.isOnBoard(twoStepRow, currentCol) && board[twoStepRow][currentCol] === 0
+        if (
+          this.isOnBoard(twoStepRow, currentCol) &&
+          board[twoStepRow][currentCol] === 0
         ) {
           legalMoves.push({ row: twoStepRow, col: currentCol });
         }
@@ -86,25 +97,22 @@ class Pawn {
       const captureCol = currentCol + offset;
       if (this.isOnBoard(oneStepRow, captureCol)) {
         const occupant = board[oneStepRow][captureCol];
-        if (occupant !== 0){
-          if (occupant.color !== this.color){
+        if (occupant !== 0) {
+          if (occupant.colour !== this.colour) {
             legalMoves.push({ row: oneStepRow, col: captureCol });
-
-          }
-          else{
+          } else {
             isProtecting.push({ row: oneStepRow, col: captureCol });
           }
         }
       }
     });
 
-    return {legalMoves, isProtecting};
+    return { legalMoves, isProtecting };
   }
 
   isOnBoard(row, col) {
     return row >= 0 && row < 8 && col >= 0 && col < 8;
   }
-
 }
 
 export default Pawn;

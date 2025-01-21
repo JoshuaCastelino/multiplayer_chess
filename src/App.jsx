@@ -35,30 +35,30 @@ function App() {
     setThreatMapBlack(threatMapBlack);
   }, []);
 
-
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
-    // Clear and redraw the board first
     redrawBoard(canvas, board, boardSize, tileSize);
-    // Draw threatened tiles for White
     colourThreatMap(ctx, tileSize, threatMapWhite, red);
     colourThreatMap(ctx, tileSize, threatMapBlack, blue);
   }, [threatMapWhite, threatMapBlack, tileSize]);
 
   const selectPiece = (e, tileSize, board) => {
-
     const { row, col } = pointToCoordinate(canvasRef, e, tileSize);
     if (!isInBounds(row, col, boardSize)) return;
-    
+
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     const piece = board[row][col];
-    const isOwnPiece = piece.color === playerTurn;
+
+    const pieceColour = piece.colour;
+    const isOwnPiece = pieceColour === playerTurn;
+    const threatMap = pieceColour === "white" ? threatMapBlack : threatMapWhite;
 
     if (isOwnPiece) {
       setSelectedPiece(piece);
-      let { legalMoves, _ } = piece.generateLegalMoves(board);
+      // This is some funky JS sheizer, passing a param which most functions don't even take, brilliant!
+      let { legalMoves, _ } = piece.generateLegalMoves(board, threatMap);
       setLegalMoves(legalMoves);
       redrawBoard(canvas, board, boardSize, tileSize);
       drawLegalMoves(legalMoves, tileSize, ctx, red);

@@ -5,11 +5,11 @@ import Queen from "../pieces/queen";
 import King from "../pieces/king";
 import Knight from "../pieces/knight";
 
-function addThreats(legalMoves, colorThreatMap, piece) {
+function addThreats(legalMoves, colourThreatMap, piece) {
   for (let { row: moveRow, col: moveCol } of legalMoves) {
     const key = `${moveRow}${moveCol}`;
-    colorThreatMap[key] = colorThreatMap[key] || [];
-    colorThreatMap[key].push(piece);
+    colourThreatMap[key] = colourThreatMap[key] || [];
+    colourThreatMap[key].push(piece);
   }
 }
 
@@ -28,8 +28,8 @@ export function updateThreatMaps(newBoard, boardSize) {
       const piece = newBoard[row][col];
       if (piece === 0) continue;
 
-      const pieceColour = piece.color;
-      const colorThreatMap =
+      const pieceColour = piece.colour;
+      const colourThreatMap =
         pieceColour === "white" ? newThreatMapWhite : newThreatMapBlack;
 
       if (piece instanceof Pawn) {
@@ -40,15 +40,15 @@ export function updateThreatMaps(newBoard, boardSize) {
           const captureCol = col + offset;
           if (isInBounds(captureCol, oneStepRow, boardSize)) {
             const key = `${oneStepRow}${captureCol}`;
-            colorThreatMap[key] = colorThreatMap[key] || [];
-            colorThreatMap[key].push(piece);
+            colourThreatMap[key] = colourThreatMap[key] || [];
+            colourThreatMap[key].push(piece);
           }
         });
       } else {
         const { legalMoves, isProtecting } = piece.generateLegalMoves(newBoard);
 
-        addThreats(legalMoves, colorThreatMap, piece);
-        addThreats(isProtecting, colorThreatMap, piece);
+        addThreats(legalMoves, colourThreatMap, piece);
+        addThreats(isProtecting, colourThreatMap, piece);
       }
     }
   }
@@ -116,8 +116,8 @@ export function initialise(ctx, boardSize) {
   for (const { type, positions } of pieces) {
     for (let i = 0; i < positions.length; i++) {
       const position = positions[i];
-      const color = i % 2 === 0 ? "black" : "white";
-      board[position.y][position.x] = new type(color, position, ctx);
+      const colour = i % 2 === 0 ? "black" : "white";
+      board[position.y][position.x] = new type(colour, position, ctx);
     }
   }
 

@@ -1,10 +1,10 @@
 import SlidingPiece from "./slidingPiece";
 
-class King  {
-  constructor(color, position, ctx) {
-    this.color = color
-    this.position = position
-    this.ctx = ctx
+class King {
+  constructor(colour, position, ctx) {
+    this.colour = colour;
+    this.position = position;
+    this.ctx = ctx;
     this.directions = [
       [-1, 0], // Left
       [1, 0], // Right
@@ -24,7 +24,7 @@ class King  {
     const centerX = x * tileSize + tileSize / 2;
     const centerY = y * tileSize + tileSize / 2;
 
-    // Adjust size for the diamond 
+    // Adjust size for the diamond
     const halfSize = 22.5;
 
     // Calculate the diamond points
@@ -36,7 +36,7 @@ class King  {
     ];
 
     // Draw the diamond
-    this.ctx.fillStyle = this.color;
+    this.ctx.fillStyle = this.colour;
     this.ctx.beginPath();
     this.ctx.moveTo(points[0].x, points[0].y); // Start at the top
     for (let i = 1; i < points.length; i++) {
@@ -46,7 +46,7 @@ class King  {
     this.ctx.fill();
 
     // Add a border
-    this.ctx.strokeStyle = this.color === "white" ? "#000000" : "#FFFFFF";
+    this.ctx.strokeStyle = this.colour === "white" ? "#000000" : "#FFFFFF";
     this.ctx.lineWidth = 2;
     this.ctx.stroke();
   }
@@ -57,7 +57,7 @@ class King  {
     );
   }
 
-  generateLegalMoves(board) {
+  generateLegalMoves(board, threatMap) {
     const { x: currentCol, y: currentRow } = this.position;
     const directions = this.directions;
     const legalMoves = [];
@@ -66,26 +66,35 @@ class King  {
     for (let [colOffset, rowOffset] of directions) {
       let colToCheck = currentCol + colOffset;
       let rowToCheck = currentRow + rowOffset;
+      let key = `${rowToCheck}${colToCheck}`;
       const moveNotInBounds = !this.isOnBoard(colToCheck, rowToCheck);
 
+      if (moveNotInBounds) {
+        continue;
+      }
 
-      if (moveNotInBounds){
+      // This is pretty fucking horrendous
+      if (threatMap && key in threatMap) {
         continue;
       }
 
       const pieceInTile = board[rowToCheck][colToCheck];
       const tileIsEmpty = pieceInTile == 0;
-      const tileOccupiedBySameColour = !tileIsEmpty && pieceInTile.color == this.color
+      const tileOccupiedBySameColour =
+        !tileIsEmpty && pieceInTile.colour == this.colour;
 
-      if (!tileOccupiedBySameColour || tileIsEmpty){
-        legalMoves.push({col: colToCheck, row: rowToCheck})
-      }
-      else{
-        isProtecting.push({col: colToCheck, row: rowToCheck})
+      if (!tileOccupiedBySameColour || tileIsEmpty) {
+        legalMoves.push({ col: colToCheck, row: rowToCheck });
+      } else {
+        isProtecting.push({ col: colToCheck, row: rowToCheck });
       }
     }
 
-    return {legalMoves, isProtecting};
+    if (legalMoves.length == 0) {
+      console.log("Possibly checkmated, captures may be available");
+    }
+
+    return { legalMoves, isProtecting };
   }
 
   move(newPosition, board, legalMoves) {
@@ -105,7 +114,6 @@ class King  {
       newBoard[targetRow][targetCol] = this;
       this.position = { x: targetCol, y: targetRow };
     }
-  
 
     return { newBoard, isPositionFound };
   }

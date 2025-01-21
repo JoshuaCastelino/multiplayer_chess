@@ -1,8 +1,8 @@
 import SlidingPiece from "./slidingPiece";
 
 class Bishop extends SlidingPiece {
-  constructor(color, position, ctx) {
-    super(color, position, ctx);
+  constructor(colour, position, ctx) {
+    super(colour, position, ctx);
     this.directions = [
       [-1, -1], // Top-left
       [-1, 1], // Top-right
@@ -28,7 +28,7 @@ class Bishop extends SlidingPiece {
     const rightY = centerY + halfSize;
 
     // Draw the triangle (fill)
-    this.ctx.fillStyle = this.color;
+    this.ctx.fillStyle = this.colour;
     this.ctx.beginPath();
     this.ctx.moveTo(topX, topY); // Top point
     this.ctx.lineTo(leftX, leftY); // Bottom-left point
@@ -37,7 +37,7 @@ class Bishop extends SlidingPiece {
     this.ctx.fill();
 
     // Add a border to the triangle
-    this.ctx.strokeStyle = this.color === "white" ? "#000000" : "#FFFFFF";
+    this.ctx.strokeStyle = this.colour === "white" ? "#000000" : "#FFFFFF";
     this.ctx.lineWidth = 2; // Border thickness
     this.ctx.stroke();
   }

@@ -6,7 +6,7 @@ export function redrawBoard(canvas, board, boardSize, tileSize) {
   for (let row = 0; row < boardSize; row++) {
     for (let col = 0; col < boardSize; col++) {
       const isDark = (row + col) % 2 === 1;
-      ctx.fillStyle = isDark ? "#769656" : "#eeeed2"; // dark and light colors
+      ctx.fillStyle = isDark ? "#769656" : "#eeeed2"; // dark and light colours
       ctx.fillRect(col * tileSize, row * tileSize, tileSize, tileSize);
     }
   }
