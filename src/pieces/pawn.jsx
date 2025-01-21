@@ -64,6 +64,7 @@ class Pawn {
     const { x: currentCol, y: currentRow } = this.position;
     const direction = this.color === "white" ? -1 : 1;
     const legalMoves = [];
+    const isProtecting = [];
 
     const oneStepRow = currentRow + direction;
 
@@ -85,13 +86,19 @@ class Pawn {
       const captureCol = currentCol + offset;
       if (this.isOnBoard(oneStepRow, captureCol)) {
         const occupant = board[oneStepRow][captureCol];
-        if (occupant !== 0 && occupant.color !== this.color) {
-          legalMoves.push({ row: oneStepRow, col: captureCol });
+        if (occupant !== 0){
+          if (occupant.color !== this.color){
+            legalMoves.push({ row: oneStepRow, col: captureCol });
+
+          }
+          else{
+            isProtecting.push({ row: oneStepRow, col: captureCol });
+          }
         }
       }
     });
 
-    return legalMoves;
+    return {legalMoves, isProtecting};
   }
 
   isOnBoard(row, col) {

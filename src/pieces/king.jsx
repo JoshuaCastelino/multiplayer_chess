@@ -61,6 +61,7 @@ class King  {
     const { x: currentCol, y: currentRow } = this.position;
     const directions = this.directions;
     const legalMoves = [];
+    const isProtecting = [];
 
     for (let [colOffset, rowOffset] of directions) {
       let colToCheck = currentCol + colOffset;
@@ -79,11 +80,12 @@ class King  {
       if (!tileOccupiedBySameColour || tileIsEmpty){
         legalMoves.push({col: colToCheck, row: rowToCheck})
       }
+      else{
+        isProtecting.push({col: colToCheck, row: rowToCheck})
+      }
     }
 
-    console.log(legalMoves);
-
-    return legalMoves;
+    return {legalMoves, isProtecting};
   }
 
   move(newPosition, board, legalMoves) {

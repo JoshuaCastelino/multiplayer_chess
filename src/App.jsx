@@ -70,12 +70,12 @@ function App() {
       for (let col = 0 ; col < threatMapWhite.length ; col ++){
         const x = col * tileSize;
         const y = row * tileSize;
-        if (threatMapWhite[row][col] === 1){
+        if (threatMapWhite[row][col].length > 0){
           ctx.fillStyle = "rgba(255, 0, 0, 0.25)"; 
           ctx.fillRect(x, y, tileSize, tileSize);
         }
-        if (threatMapBlack[row][col] === 1){
-          ctx.fillStyle = "rgba(0, 51, 255, 0.25)"; // Red with 50% transparency
+        if (threatMapBlack[row][col].length > 0){
+          ctx.fillStyle = "rgba(0, 51, 255, 0.25)";
           ctx.fillRect(x, y, tileSize, tileSize);
         }        
       }
@@ -106,7 +106,9 @@ function App() {
 
     if (isOwnPiece) {
       setSelectedPiece(piece);
-      setLegalMoves(piece.generateLegalMoves(board))
+
+      let {legalMoves, _} = piece.generateLegalMoves(board)
+      setLegalMoves(legalMoves)
 
     } else if (selectedPiece && (isEmptyTile || !isOwnPiece)) {
       let newPos = { col, row }
@@ -171,9 +173,7 @@ function drawBoard(boardSize, ctx, tileSize) {
 
 function initialise(ctx, tileSize, boardSize) {
   const board = new Array(8).fill(null).map(() => new Array(8).fill(0));
-  // const threatMapWhite = new Array(8).fill(null).map(() => new Array(8).fill(0));
-  // const threatMapBlack = new Array(8).fill(null).map(() => new Array(8).fill(0));
-
+  
   drawBoard(boardSize, ctx, tileSize);
 
   const pieces = [
@@ -245,8 +245,9 @@ function updateThreatMaps(newBoard, boardSize){
   function isOnBoard(colToCheck, rowToCheck) {
     return colToCheck >= 0 && colToCheck < 8 && rowToCheck >= 0 && rowToCheck < 8;
   }
-  const newThreatMapBlack = new Array(8).fill(null).map(() => new Array(8).fill(0));
-  const newThreatMapWhite = new Array(8).fill(null).map(() => new Array(8).fill(0));
+  const newThreatMapBlack = new Array(8).fill(null).map(() => new Array(8).fill().map(() => []));
+  const newThreatMapWhite = new Array(8).fill(null).map(() => new Array(8).fill().map(() => []));
+  
 
   for (let row = 0; row < boardSize; row ++){
     for (let col = 0; col < boardSize; col ++){
@@ -262,18 +263,25 @@ function updateThreatMaps(newBoard, boardSize){
 
         [-1, 1].forEach((offset) => {
           const captureCol = col + offset;
-          if (isOnBoard(oneStepRow, captureCol)) {
-            colorThreatMap[oneStepRow][captureCol] = 1
+          if (isOnBoard(captureCol, oneStepRow)) {
+            colorThreatMap[oneStepRow][captureCol].push(piece)
           }
         });
       }
       else{
-        let threatPositions = piece.generateLegalMoves(newBoard)
-        for (let {row, col} of threatPositions){
-          colorThreatMap[row][col] = 1
+        let {legalMoves, isProtecting} = piece.generateLegalMoves(newBoard)
+        console.log(isProtecting.length)
+        for (let {row, col} of legalMoves){
+          colorThreatMap[row][col].push(piece)
+        }
+        for (let {row, col} of isProtecting){
+          console.log("Protecting")
+          colorThreatMap[row][col].push(piece)
         }
       }
     }
   }
+  console.log("here")
+  console.log(newThreatMapWhite)
   return {newThreatMapWhite, newThreatMapBlack}
 }

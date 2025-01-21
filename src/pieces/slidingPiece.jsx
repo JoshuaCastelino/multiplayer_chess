@@ -15,7 +15,10 @@ class SlidingPiece {
   generateLegalMoves(board) {
     const { x: currentCol, y: currentRow } = this.position;
     const directions = this.directions;
+    // The moves that the piece can take when it is its turn
     const legalMoves = [];
+    // The positions occupied by pieces of the same colour that this piece protects
+    const isProtecting = [];
 
     for (let [colOffset, rowOffset] of directions) {
       let colToCheck = currentCol + colOffset;
@@ -29,6 +32,7 @@ class SlidingPiece {
         if (tileIsNotEmpty) {
           pathBlocked = true;
           if (pieceInTile.color == this.color) {
+            isProtecting.push({col: colToCheck, row: rowToCheck})
             break;
           }
         }
@@ -41,9 +45,7 @@ class SlidingPiece {
       }
     }
 
-    console.log(legalMoves);
-
-    return legalMoves;
+    return {legalMoves, isProtecting};
   }
 
   // Function to move the piece if the target position is valid

@@ -52,6 +52,7 @@ class Knight {
     ];
 
     const legalMoves = [];
+    const isProtecting = [];
     for (const move of potentialMoves) {
       const { row, col } = move;
       if (row >= 0 && row < boardSize && col >= 0 && col < boardSize) {
@@ -59,10 +60,13 @@ class Knight {
         if (occupant === 0 || occupant.color !== this.color) {
           legalMoves.push({ row, col });
         }
+        else{
+          isProtecting.push({ row, col });
+        }
       }
     }
 
-    return legalMoves;
+    return {legalMoves, isProtecting};
   }
 
 
@@ -78,7 +82,7 @@ class Knight {
       (move) => move.col === targetCol && move.row === targetRow
     );
 
-    if (isMoveLegal) {
+    if (isPositionFound) {
       newBoard[currentRow][currentCol] = 0;
       newBoard[targetRow][targetCol] = this;
       this.position = { x: targetCol, y: targetRow };
