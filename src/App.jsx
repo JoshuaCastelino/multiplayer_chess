@@ -1,16 +1,23 @@
 import React, { useEffect, useRef, useState } from "react";
 
-import { updateThreatMaps, initialise } from "./utils/Engine";
+import {
+  updateThreatMaps,
+  initialise,
+  pointToCoordinate,
+  isInBounds,
+} from "./utils/Engine";
 import { redrawBoard, colourThreatMap } from "./utils/Render";
 
 function App() {
   const canvasRef = useRef(null);
   const tileSize = 70;
   const boardSize = 8;
+  const red = "rgba(255, 0, 0, 0.5)";
+  const blue = "rgba(0, 50, 255, 0.5)";
+
   const [board, setBoard] = useState([]);
   const [threatMapBlack, setThreatMapBlack] = useState([]);
   const [threatMapWhite, setThreatMapWhite] = useState([]);
-
   const [selectedPiece, setSelectedPiece] = useState(undefined);
   const [playerTurn, setPlayerTurn] = useState("white");
   const [legalMoves, setLegalMoves] = useState([]);
@@ -49,7 +56,7 @@ function App() {
       const x = col * tileSize;
       const y = row * tileSize;
 
-      ctx.fillStyle = "rgba(255, 0, 0, 0.5)"; 
+      ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
       ctx.fillRect(x, y, tileSize, tileSize);
     });
   }, [selectedPiece, legalMoves]);
@@ -62,56 +69,33 @@ function App() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     redrawBoard(ctx, board, boardSize, tileSize);
 
-    let red = "rgba(255, 0, 0, 0.5)";
-    let blue = "rgba(0, 50, 255, 0.5)";
-
     // Draw threatened tiles for White
     colourThreatMap(ctx, tileSize, threatMapWhite, red);
     colourThreatMap(ctx, tileSize, threatMapBlack, blue);
   }, [threatMapWhite, threatMapBlack, tileSize]);
 
-  // Look into refactoring this to move into the engine file
-  const pointToCoordinate = (e, tileSize, board) => {
-    const canvas = canvasRef.current;
 
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    const col = Math.floor(x / tileSize);
-    const row = Math.floor(y / tileSize);
-
-    const isInBounds =
-      row >= 0 && row < board.length && col >= 0 && col < board[0].length;
-
-    if (!isInBounds) {
-      return;
-    }
+  const selectPiece = (e, tileSize, board) => {
+    const { row, col } = pointToCoordinate(canvasRef, e, tileSize);
+    if (!isInBounds(row, col, boardSize)) return;
 
     const piece = board[row][col];
     const isOwnPiece = piece.color === playerTurn;
-    const isEmptyTile = piece == 0;
 
     if (isOwnPiece) {
       setSelectedPiece(piece);
-
       let { legalMoves, _ } = piece.generateLegalMoves(board);
       setLegalMoves(legalMoves);
-    } else if (selectedPiece && (isEmptyTile || !isOwnPiece)) {
+
+    } 
+    else if (selectedPiece) {
       let newPos = { col, row };
-      let { newBoard, isPositionFound } = selectedPiece.move(
-        newPos,
-        board,
-        legalMoves
-      );
+      let { newBoard, isPositionFound } = selectedPiece.move(newPos, board, legalMoves);
       setLegalMoves([]);
       if (isPositionFound) {
-        setPlayerTurn(playerTurn == "white" ? "black" : "white");
         setBoard(newBoard);
-        let { newThreatMapWhite, newThreatMapBlack } = updateThreatMaps(
-          newBoard,
-          boardSize
-        );
+        setPlayerTurn(playerTurn == "white" ? "black" : "white");
+        const { newThreatMapWhite, newThreatMapBlack } = updateThreatMaps(newBoard,boardSize);
         setThreatMapWhite(newThreatMapWhite);
         setThreatMapBlack(newThreatMapBlack);
       }
@@ -121,7 +105,7 @@ function App() {
 
   return (
     <div
-      onMouseDown={(event) => pointToCoordinate(event, tileSize, board)}
+      onMouseDown={(event) => selectPiece(event, tileSize, board)}
       style={{
         display: "flex",
         justifyContent: "center",

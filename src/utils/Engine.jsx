@@ -131,3 +131,19 @@ export function initialise(ctx, boardSize) {
 
   return { board, threatMapWhite, threatMapBlack };
 }
+
+export function pointToCoordinate(canvasRef, e, tileSize) {
+  const canvas = canvasRef.current;
+
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
+  const col = Math.floor(x / tileSize);
+  const row = Math.floor(y / tileSize);
+  return { row, col };
+}
+
+export function isInBounds(row, col, boardSize) {
+  return row >= 0 && col >= 0 && row < boardSize && col < boardSize;
+}
