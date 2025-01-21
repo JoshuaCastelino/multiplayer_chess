@@ -17,3 +17,17 @@ export function redrawBoard(ctx, board, boardSize, tileSize) {
     }
   }
   
+
+  export function colourThreatMap(ctx, tileSize, threatMap, colour) {
+    Object.keys(threatMap).forEach((key) => {
+      const threats = threatMap[key];
+      if (threats && threats.length > 0) {
+        const row = key[0];
+        const col = key[1];
+        const x = col * tileSize;
+        const y = row * tileSize;
+        ctx.fillStyle = colour;
+        ctx.fillRect(x, y, tileSize, tileSize);
+      }
+    });
+  }

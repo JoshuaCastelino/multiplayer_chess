@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 
 import { updateThreatMaps, initialise } from "./utils/Engine";
-import { redrawBoard } from "./utils/Render";
+import { redrawBoard, colourThreatMap } from "./utils/Render";
 
 function App() {
   const canvasRef = useRef(null);
@@ -65,23 +65,9 @@ function App() {
     let red = "rgba(255, 0, 0, 0.5)";
     let blue = "rgba(0, 50, 255, 0.5)";
 
-    function colourThreatMap(threatMap, colour) {
-      Object.keys(threatMap).forEach((key) => {
-        const threats = threatMap[key];
-        if (threats && threats.length > 0) {
-          const row = key[0];
-          const col = key[1];
-          const x = col * tileSize;
-          const y = row * tileSize;
-          ctx.fillStyle = colour;
-          ctx.fillRect(x, y, tileSize, tileSize);
-        }
-      });
-    }
-
     // Draw threatened tiles for White
-    colourThreatMap(threatMapWhite, red);
-    colourThreatMap(threatMapBlack, blue);
+    colourThreatMap(ctx, tileSize, threatMapWhite, red);
+    colourThreatMap(ctx, tileSize, threatMapBlack, blue);
   }, [threatMapWhite, threatMapBlack, tileSize]);
 
   // Look into refactoring this to move into the engine file
