@@ -5,17 +5,21 @@ import Queen from "../pieces/queen";
 import King from "../pieces/king";
 import Knight from "../pieces/knight";
 
-export function updateThreatMaps(newBoard, boardSize) {
-  function isOnBoard(colToCheck, rowToCheck) {
-    return (
-      colToCheck >= 0 &&
-      colToCheck < boardSize &&
-      rowToCheck >= 0 &&
-      rowToCheck < boardSize
-    );
+function addThreats(legalMoves, colorThreatMap, piece) {
+  for (let { row: moveRow, col: moveCol } of legalMoves) {
+    const key = `${moveRow}${moveCol}`;
+    colorThreatMap[key] = colorThreatMap[key] || [];
+    colorThreatMap[key].push(piece);
   }
+}
 
-  // Use string keys (row,col) in place of 2D arrays
+// This function appears in different places with the exact same functionality,
+// Look into centralising defintion
+export function isInBounds(row, col, boardSize) {
+  return row >= 0 && col >= 0 && row < boardSize && col < boardSize;
+}
+
+export function updateThreatMaps(newBoard, boardSize) {
   const newThreatMapBlack = {};
   const newThreatMapWhite = {};
 
@@ -34,7 +38,7 @@ export function updateThreatMaps(newBoard, boardSize) {
 
         [-1, 1].forEach((offset) => {
           const captureCol = col + offset;
-          if (isOnBoard(captureCol, oneStepRow)) {
+          if (isInBounds(captureCol, oneStepRow, boardSize)) {
             const key = `${oneStepRow}${captureCol}`;
             colorThreatMap[key] = colorThreatMap[key] || [];
             colorThreatMap[key].push(piece);
@@ -43,17 +47,8 @@ export function updateThreatMaps(newBoard, boardSize) {
       } else {
         const { legalMoves, isProtecting } = piece.generateLegalMoves(newBoard);
 
-        for (let { row: moveRow, col: moveCol } of legalMoves) {
-          const key = `${moveRow}${moveCol}`;
-          colorThreatMap[key] = colorThreatMap[key] || [];
-          colorThreatMap[key].push(piece);
-        }
-
-        for (let { row: protectRow, col: protectCol } of isProtecting) {
-          const key = `${protectRow}${protectCol}`;
-          colorThreatMap[key] = colorThreatMap[key] || [];
-          colorThreatMap[key].push(piece);
-        }
+        addThreats(legalMoves, colorThreatMap, piece);
+        addThreats(isProtecting, colorThreatMap, piece);
       }
     }
   }
@@ -142,8 +137,4 @@ export function pointToCoordinate(canvasRef, e, tileSize) {
   const col = Math.floor(x / tileSize);
   const row = Math.floor(y / tileSize);
   return { row, col };
-}
-
-export function isInBounds(row, col, boardSize) {
-  return row >= 0 && col >= 0 && row < boardSize && col < boardSize;
 }

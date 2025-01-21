@@ -6,7 +6,7 @@ import {
   pointToCoordinate,
   isInBounds,
 } from "./utils/Engine";
-import { redrawBoard, colourThreatMap } from "./utils/Render";
+import { redrawBoard, colourThreatMap, drawLegalMoves } from "./utils/Render";
 
 function App() {
   const canvasRef = useRef(null);
@@ -26,7 +26,6 @@ function App() {
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
-    const rect = canvas.getBoundingClientRect();
     const { board, threatMapWhite, threatMapBlack } = initialise(
       ctx,
       boardSize
@@ -36,49 +35,24 @@ function App() {
     setThreatMapBlack(threatMapBlack);
   }, []);
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  }, [board]);
-
-  useEffect(() => {
-    if (!canvasRef.current || !legalMoves) return;
-
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    // Clear canvasRed overlay
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    redrawBoard(ctx, board, boardSize, tileSize);
-
-    // Draw red transparent overlays for each legal move
-    legalMoves.forEach(({ row, col }) => {
-      const x = col * tileSize;
-      const y = row * tileSize;
-
-      ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
-      ctx.fillRect(x, y, tileSize, tileSize);
-    });
-  }, [selectedPiece, legalMoves]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
-
     // Clear and redraw the board first
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    redrawBoard(ctx, board, boardSize, tileSize);
-
+    redrawBoard(canvas, board, boardSize, tileSize);
     // Draw threatened tiles for White
     colourThreatMap(ctx, tileSize, threatMapWhite, red);
     colourThreatMap(ctx, tileSize, threatMapBlack, blue);
   }, [threatMapWhite, threatMapBlack, tileSize]);
 
-
   const selectPiece = (e, tileSize, board) => {
+
     const { row, col } = pointToCoordinate(canvasRef, e, tileSize);
     if (!isInBounds(row, col, boardSize)) return;
-
+    
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
     const piece = board[row][col];
     const isOwnPiece = piece.color === playerTurn;
 
@@ -86,16 +60,23 @@ function App() {
       setSelectedPiece(piece);
       let { legalMoves, _ } = piece.generateLegalMoves(board);
       setLegalMoves(legalMoves);
-
-    } 
-    else if (selectedPiece) {
+      redrawBoard(canvas, board, boardSize, tileSize);
+      drawLegalMoves(legalMoves, tileSize, ctx, red);
+    } else if (selectedPiece) {
       let newPos = { col, row };
-      let { newBoard, isPositionFound } = selectedPiece.move(newPos, board, legalMoves);
+      let { newBoard, isPositionFound } = selectedPiece.move(
+        newPos,
+        board,
+        legalMoves
+      );
       setLegalMoves([]);
       if (isPositionFound) {
         setBoard(newBoard);
         setPlayerTurn(playerTurn == "white" ? "black" : "white");
-        const { newThreatMapWhite, newThreatMapBlack } = updateThreatMaps(newBoard,boardSize);
+        const { newThreatMapWhite, newThreatMapBlack } = updateThreatMaps(
+          newBoard,
+          boardSize
+        );
         setThreatMapWhite(newThreatMapWhite);
         setThreatMapBlack(newThreatMapBlack);
       }
