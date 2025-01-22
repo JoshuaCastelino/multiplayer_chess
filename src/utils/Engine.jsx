@@ -19,6 +19,10 @@ export function isInBounds(row, col, boardSize) {
   return row >= 0 && col >= 0 && row < boardSize && col < boardSize;
 }
 
+export function generateThreatMapKey(row, col){
+  return `${row}${col}`
+}
+
 export function updateThreatMaps(newBoard, boardSize) {
   const newThreatMapBlack = {};
   const newThreatMapWhite = {};
@@ -39,7 +43,7 @@ export function updateThreatMaps(newBoard, boardSize) {
         [-1, 1].forEach((offset) => {
           const captureCol = col + offset;
           if (isInBounds(captureCol, oneStepRow, boardSize)) {
-            const key = `${oneStepRow}${captureCol}`;
+            const key = generateThreatMapKey(oneStepRow, captureCol);
             colourThreatMap[key] = colourThreatMap[key] || [];
             colourThreatMap[key].push(piece);
           }
@@ -107,24 +111,36 @@ export function initialise(ctx, boardSize) {
     },
   ];
 
-  // Draw the pawns
   for (let i = 0; i < 8; i++) {
     board[1][i] = new Pawn("black", { x: i, y: 1 }, ctx);
     board[6][i] = new Pawn("white", { x: i, y: 6 }, ctx);
   }
 
+  let blackKing = null
+  let whiteKing = null
+
   for (const { type, positions } of pieces) {
     for (let i = 0; i < positions.length; i++) {
       const position = positions[i];
-      const colour = i % 2 === 0 ? "black" : "white";
-      board[position.y][position.x] = new type(colour, position, ctx);
+      const isEven = i % 2 === 0
+      const colour = isEven ? "black" : "white";
+      let newPiece = new type(colour, position, ctx);
+      board[position.y][position.x] = newPiece
+      if (type == King){
+        if (isEven){
+          whiteKing = newPiece
+        }
+        else{
+          blackKing = newPiece
+        }
+      }
     }
   }
 
   let { newThreatMapWhite: threatMapWhite, newThreatMapBlack: threatMapBlack } =
     updateThreatMaps(board, boardSize);
 
-  return { board, threatMapWhite, threatMapBlack };
+  return { board, threatMapWhite, threatMapBlack, blackKing, whiteKing };
 }
 
 export function pointToCoordinate(canvasRef, e, tileSize) {

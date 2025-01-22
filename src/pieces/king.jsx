@@ -1,3 +1,4 @@
+import { generateThreatMapKey } from "../utils/Engine";
 import SlidingPiece from "./slidingPiece";
 
 class King {
@@ -66,7 +67,7 @@ class King {
     for (let [colOffset, rowOffset] of directions) {
       let colToCheck = currentCol + colOffset;
       let rowToCheck = currentRow + rowOffset;
-      let key = `${rowToCheck}${colToCheck}`;
+      let key = generateThreatMapKey(rowToCheck, colToCheck);
       const moveNotInBounds = !this.isOnBoard(colToCheck, rowToCheck);
 
       if (moveNotInBounds) {
@@ -90,22 +91,10 @@ class King {
       }
     }
 
-    const positionKey = `${this.position.y}${this.position.x}`;
-    if (legalMoves.length == 0 && threatMap && positionKey in threatMap) {
-      /* 
-        If a king is checked and has no legal moves there are three escape opportunities:
-          1. The checker can be blocked
-           . This can only be the case when there is one checker (Very Easy)
-           . Cannot block a knight (Easy)
-           . A piece that is pinned cannot move to block a check (Very Hard)
-
-          2. The checking piece can be captured 
-            . Can only capture a piece if there is one checker (Easy)
-            . Cannot capture a piece if is protected, this is already checked during legal move generation (Done)
-
-          3. FUCKING STALEMATE AHHHHHHHHHHHHHHHHHHHHHHHH!!!!!!!!!
-      */
-    }
+    // const positionKey = generateThreatMapKey(this.position.y, this.position.x);
+    // if (legalMoves.length == 0 && threatMap && positionKey in threatMap) {
+    //   console.log("No available moves")
+    // }
 
     return { legalMoves, isProtecting };
   }
