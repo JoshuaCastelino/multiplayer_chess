@@ -7,7 +7,7 @@ import {
   isInBounds,
   generateThreatMapKey,
 } from "./utils/Engine";
-import { redrawBoard, colourThreatMap, drawLegalMoves } from "./utils/Render";
+import { redrawBoard, colourThreatMap, drawLegalMoves, colourCheck } from "./utils/Render";
 
 function App() {
   const canvasRef = useRef(null);
@@ -46,17 +46,7 @@ function App() {
       board,
       boardSize
     );
-    const nextTurn = playerTurn == "white" ? "black" : "white"
-    const threatMap = playerTurn == "white" ? newThreatMapWhite : newThreatMapBlack;
-    const king = kings[playerTurn]
-    const threatMapKey = generateThreatMapKey(king.position.y, king.position.x)
 
-    console.log(playerTurn, threatMapKey)
-
-    const threatMapValue = threatMap[threatMapKey]
-    if (threatMapValue && threatMapValue.length > 0){
-      console.log(`${playerTurn} is in check`)
-    }
 
     setThreatMapWhite(newThreatMapWhite);
     setThreatMapBlack(newThreatMapBlack);
@@ -64,6 +54,20 @@ function App() {
     redrawBoard(canvas, board, boardSize, tileSize);
     colourThreatMap(ctx, tileSize, newThreatMapWhite, red);
     colourThreatMap(ctx, tileSize, newThreatMapBlack, blue);
+
+    const nextTurn = playerTurn == "white" ? "black" : "white"
+    const threatMap = playerTurn == "white" ? newThreatMapWhite : newThreatMapBlack;
+    const king = kings[playerTurn]
+    const kingRow = king.position.y
+    const kingCol = king.position.x
+    const threatMapKey = generateThreatMapKey(kingRow, kingCol)
+    const threatMapValue = threatMap[threatMapKey]
+
+    if (threatMapValue && threatMapValue.length > 0){
+      console.log(`${playerTurn} is in check`)
+      colourCheck(ctx, tileSize, kingRow, kingCol)
+    }
+
 
     setPlayerTurn(nextTurn);
   }, [board]);
