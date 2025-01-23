@@ -5,9 +5,9 @@ class SlidingPiece {
     this.ctx = ctx;
   }
 
-  isOnBoard(colToCheck, rowToCheck) {
+  isOnBoard(col, row) {
     return (
-      colToCheck >= 0 && colToCheck < 8 && rowToCheck >= 0 && rowToCheck < 8
+      col >= 0 && col < 8 && row >= 0 && row < 8
     );
   }
 
@@ -21,27 +21,28 @@ class SlidingPiece {
     const isProtecting = [];
 
     for (let [colOffset, rowOffset] of directions) {
-      let colToCheck = currentCol + colOffset;
-      let rowToCheck = currentRow + rowOffset;
+      let col = currentCol + colOffset;
+      let row = currentRow + rowOffset;
+      let position = {col, row}
       let pathBlocked = false;
-      let moveInBounds = this.isOnBoard(colToCheck, rowToCheck);
+      let moveInBounds = this.isOnBoard(col, row);
 
       while (moveInBounds && !pathBlocked) {
-        let pieceInTile = board[rowToCheck][colToCheck];
+        let pieceInTile = board[row][col];
         let tileIsNotEmpty = pieceInTile !== 0;
         if (tileIsNotEmpty) {
           pathBlocked = true;
           if (pieceInTile.colour == this.colour) {
-            isProtecting.push({ col: colToCheck, row: rowToCheck });
+            isProtecting.push(position);
             break;
           }
         }
 
-        legalMoves.push({ col: colToCheck, row: rowToCheck });
+        legalMoves.push(position);
 
-        colToCheck += colOffset;
-        rowToCheck += rowOffset;
-        moveInBounds = this.isOnBoard(colToCheck, rowToCheck);
+        col += colOffset;
+        row += rowOffset;
+        moveInBounds = this.isOnBoard(col, row);
       }
     }
 
@@ -53,13 +54,13 @@ class SlidingPiece {
     const { col: targetCol, row: targetRow } = newPosition;
     const { x: currentCol, y: currentRow } = this.position;
 
-    const newBoard = board.map((row) => [...row]);
-
     let isPositionFound = false;
 
     isPositionFound = legalMoves.some(
       (move) => move.col === targetCol && move.row === targetRow
     );
+
+    const newBoard = board.map((row) => [...row]);
 
     if (isPositionFound) {
       newBoard[currentRow][currentCol] = 0;

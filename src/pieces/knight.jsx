@@ -1,3 +1,5 @@
+import { isInBounds } from "../utils/Engine";
+
 class Knight {
   constructor(colour, position, ctx) {
     this.colour = colour;
@@ -55,7 +57,7 @@ class Knight {
     const isProtecting = [];
     for (const move of potentialMoves) {
       const { row, col } = move;
-      if (row >= 0 && row < boardSize && col >= 0 && col < boardSize) {
+      if (isInBounds(row, col, boardSize)) {
         const occupant = board[row][col];
         if (occupant === 0 || occupant.colour !== this.colour) {
           legalMoves.push({ row, col });
