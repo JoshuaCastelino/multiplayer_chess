@@ -39,7 +39,6 @@ class Pawn {
 
     const oneStepRow = currentRow + direction;
 
-    
     if (
       this.isOnBoard(oneStepRow, currentCol) &&
       board[oneStepRow][currentCol] === 0
