@@ -19,8 +19,8 @@ export function isInBounds(row, col, boardSize) {
   return row >= 0 && col >= 0 && row < boardSize && col < boardSize;
 }
 
-export function generateThreatMapKey(row, col){
-  return `${row}${col}`
+export function generateThreatMapKey(row, col) {
+  return `${row}${col}`;
 }
 
 export function updateThreatMaps(newBoard, boardSize) {
@@ -116,22 +116,21 @@ export function initialise(ctx, boardSize) {
     board[6][i] = new Pawn("white", { x: i, y: 6 }, ctx);
   }
 
-  let blackKing = null
-  let whiteKing = null
+  let blackKing = null;
+  let whiteKing = null;
 
   for (const { type, positions } of pieces) {
     for (let i = 0; i < positions.length; i++) {
       const position = positions[i];
-      const isEven = i % 2 === 0
+      const isEven = i % 2 === 0;
       const colour = isEven ? "black" : "white";
       let newPiece = new type(colour, position, ctx);
-      board[position.y][position.x] = newPiece
-      if (type == King){
-        if (isEven){
-          whiteKing = newPiece
-        }
-        else{
-          blackKing = newPiece
+      board[position.y][position.x] = newPiece;
+      if (type == King) {
+        if (isEven) {
+          whiteKing = newPiece;
+        } else {
+          blackKing = newPiece;
         }
       }
     }
@@ -153,4 +152,63 @@ export function pointToCoordinate(canvasRef, e, tileSize) {
   const col = Math.floor(x / tileSize);
   const row = Math.floor(y / tileSize);
   return { row, col };
+}
+
+export function move(piece, newPosition, board, legalMoves) {
+  const { col: targetCol, row: targetRow } = newPosition;
+  const { x: currentCol, y: currentRow } = piece.position;
+
+  if (
+    !legalMoves.some(
+      (move) => move.col === targetCol && move.row === targetRow
+    )
+  ) {
+    return { newBoard: board, isPositionFound: false };
+  }
+
+  const newBoard = board.map((row) => [...row]);
+
+  // Clear current position
+  newBoard[currentRow][currentCol] = 0;
+
+  // Handle promotion if it's a Pawn
+  if (piece instanceof Pawn) {
+    const promotionAvailable = targetRow === 0 || targetRow === board.length - 1;
+    piece.firstMove = false;
+
+    if (promotionAvailable) {
+      piece = new Queen(
+        piece.colour,
+        { y: targetRow, x: targetCol },
+        piece.context
+      );
+    }
+  }
+
+  // Update position and place piece on the new position
+  piece.position = { x: targetCol, y: targetRow };
+  newBoard[targetRow][targetCol] = piece;
+
+  return { newBoard, isPositionFound: true };
+}
+
+
+export function isKingInCheck(king, board) {
+  for (const row of board) {
+    for (const piece of row) {
+      if (piece.colour === king.colour || piece === 0) continue;
+
+      if (piece instanceof Pawn) {
+      } else {
+        const { legalMoves, _ } = piece.generateLegalMoves(board, true);
+        for (const { col, row } of legalMoves) {
+          if (col == king.position.x && row == king.position.y) {
+            console.log("king in check");
+            return true;
+          }
+        }
+      }
+    }
+  }
+  return false;
 }

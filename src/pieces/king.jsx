@@ -1,5 +1,5 @@
 import { generateThreatMapKey } from "../utils/Engine";
-import SlidingPiece from "./slidingPiece";
+import { isKingInCheck } from "../utils/Engine";
 
 class King {
   constructor(colour, position, ctx) {
@@ -58,61 +58,48 @@ class King {
     );
   }
 
-  generateLegalMoves(board, threatMap) {
+  generateLegalMoves(board, enteringFromIsKingInCheck = false) {
     const { x: currentCol, y: currentRow } = this.position;
-    const directions = this.directions;
     const legalMoves = [];
     const isProtecting = [];
 
-    for (let [colOffset, rowOffset] of directions) {
-      let colToCheck = currentCol + colOffset;
-      let rowToCheck = currentRow + rowOffset;
-      let key = generateThreatMapKey(rowToCheck, colToCheck);
-      const moveNotInBounds = !this.isOnBoard(colToCheck, rowToCheck);
+    for (let [colOffset, rowOffset] of this.directions) {
+      let col = currentCol + colOffset;
+      let row = currentRow + rowOffset;
+      let position = { row, col };
+      let key = generateThreatMapKey(row, col);
+      const moveNotInBounds = !this.isOnBoard(col, row);
 
       if (moveNotInBounds) {
         continue;
       }
 
-      // This is pretty fucking horrendous
-      if (threatMap && key in threatMap) {
-        continue;
-      }
-
-      const pieceInTile = board[rowToCheck][colToCheck];
+      const pieceInTile = board[row][col];
       const tileIsEmpty = pieceInTile == 0;
       const tileOccupiedBySameColour =
         !tileIsEmpty && pieceInTile.colour == this.colour;
 
       if (!tileOccupiedBySameColour || tileIsEmpty) {
-        legalMoves.push({ col: colToCheck, row: rowToCheck });
+        if (!enteringFromIsKingInCheck) {
+          console.log("entering here");
+          const newBoard = board.map((row) => [...row]);
+          newBoard[currentRow][currentCol] = 0;
+          newBoard[row][col] = this;
+          this.position = { x: col, y: row };
+          let kingInCheck = isKingInCheck(this, newBoard);
+          this.position = { x: currentCol, y: currentRow };
+          if (!kingInCheck) {
+            legalMoves.push(position);
+          }
+        } else {
+          legalMoves.push(position);
+        }
       } else {
-        isProtecting.push({ col: colToCheck, row: rowToCheck });
+        isProtecting.push(position);
       }
     }
 
     return { legalMoves, isProtecting };
-  }
-
-  move(newPosition, board, legalMoves) {
-    const { col: targetCol, row: targetRow } = newPosition;
-    const { x: currentCol, y: currentRow } = this.position;
-
-    const newBoard = board.map((row) => [...row]);
-
-    let isPositionFound = false;
-
-    isPositionFound = legalMoves.some(
-      (move) => move.col === targetCol && move.row === targetRow
-    );
-
-    if (isPositionFound) {
-      newBoard[currentRow][currentCol] = 0;
-      newBoard[targetRow][targetCol] = this;
-      this.position = { x: targetCol, y: targetRow };
-    }
-
-    return { newBoard, isPositionFound };
   }
 }
 

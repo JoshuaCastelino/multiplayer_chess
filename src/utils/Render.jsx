@@ -44,6 +44,8 @@ export function colourCheck(ctx, tileSize, row, col) {
 }
 
 export function drawLegalMoves(legalMoves, tileSize, ctx, red) {
+  console.log("legal moves", legalMoves)
+
   legalMoves.forEach(({ row, col }) => {
     const x = col * tileSize;
     const y = row * tileSize;

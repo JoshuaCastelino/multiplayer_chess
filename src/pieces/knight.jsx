@@ -38,7 +38,7 @@ class Knight {
     this.ctx.stroke();
   }
 
-  generateLegalMoves(board, threatMap) {
+  generateLegalMoves(board, enteringFromIsKingInCheck = false) {
     const { x: currentCol, y: currentRow } = this.position;
     const boardSize = board.length;
 
@@ -68,27 +68,6 @@ class Knight {
     }
 
     return { legalMoves, isProtecting };
-  }
-
-  move(newPosition, board, legalMoves) {
-    const { col: targetCol, row: targetRow } = newPosition;
-    const { x: currentCol, y: currentRow } = this.position;
-
-    const newBoard = board.map((row) => [...row]);
-
-    let isPositionFound = false;
-
-    isPositionFound = legalMoves.some(
-      (move) => move.col === targetCol && move.row === targetRow
-    );
-
-    if (isPositionFound) {
-      newBoard[currentRow][currentCol] = 0;
-      newBoard[targetRow][targetCol] = this;
-      this.position = { x: targetCol, y: targetRow };
-    }
-
-    return { newBoard, isPositionFound };
   }
 }
 

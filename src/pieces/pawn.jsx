@@ -31,42 +31,7 @@ class Pawn {
     this.context.closePath();
   }
 
-  move(newPosition, board, legalMoves) {
-    const { col: targetCol, row: targetRow } = newPosition;
-    const { x: currentCol, y: currentRow } = this.position;
-
-    const newBoard = board.map((row) => [...row]);
-
-    const isPositionFound = legalMoves.some(
-      (m) => m.col === targetCol && m.row === targetRow
-    );
-    // Don't need to check colour, although this feels a little hacky, dont really want to add the additional condition
-    const promotionAvailable =
-      targetRow === 0 || targetRow === board.length - 1;
-
-    if (isPositionFound) {
-      this.firstMove = false;
-      let piece = this;
-      if (promotionAvailable) {
-        piece = new Queen(
-          this.colour,
-          { y: targetRow, x: targetCol },
-          this.context
-        );
-      }
-
-      newBoard[currentRow][currentCol] = 0;
-      newBoard[targetRow][targetCol] = piece;
-      this.position = { x: targetCol, y: targetRow };
-    }
-
-    return {
-      newBoard,
-      isPositionFound,
-    };
-  }
-
-  generateLegalMoves(board, threatMap) {
+  generateLegalMoves(board, enteringFromIsKingInCheck = false) {
     const { x: currentCol, y: currentRow } = this.position;
     const direction = this.colour === "white" ? -1 : 1;
     const legalMoves = [];
