@@ -35,17 +35,14 @@ export function colourThreatMap(ctx, tileSize, threatMap, colour) {
 }
 
 export function colourCheck(ctx, tileSize, row, col) {
-    const green = "rgba(0, 255, 0, 0.5)" 
-    const x = col * tileSize;
-    const y = row * tileSize;
-    ctx.fillStyle = green;
-    ctx.fillRect(x, y, tileSize, tileSize);
-    
+  const green = "rgba(0, 255, 0, 0.5)";
+  const x = col * tileSize;
+  const y = row * tileSize;
+  ctx.fillStyle = green;
+  ctx.fillRect(x, y, tileSize, tileSize);
 }
 
 export function drawLegalMoves(legalMoves, tileSize, ctx, red) {
-  console.log("legal moves", legalMoves)
-
   legalMoves.forEach(({ row, col }) => {
     const x = col * tileSize;
     const y = row * tileSize;

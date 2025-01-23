@@ -5,7 +5,7 @@ import {
   initialise,
   pointToCoordinate,
   isInBounds,
-  move
+  move,
 } from "./utils/Engine";
 import {
   redrawBoard,
@@ -39,7 +39,7 @@ function App() {
     setBoard(board);
     setThreatMapWhite(threatMapWhite);
     setThreatMapBlack(threatMapBlack);
-    // In an ideal world I would store this in an enum, causing me so much pain to keep using strings
+    // In an ideal world I would use an enum for player turn, causing me so much pain to keep using strings
     setKings({ white: whiteKing, black: blackKing });
   }, []);
 
@@ -47,10 +47,24 @@ function App() {
     const canvas = canvasRef.current;
     if (!board.length || !canvas) return;
 
+    if (selectedPiece instanceof King) {
+      setKings((prev) => ({
+        ...prev,
+        pieceColour: selectedPiece,
+      }));
+    }
+
+    setLegalMoves([]);
+    setSelectedPiece(undefined);
+
     const ctx = canvas.getContext("2d");
+    const nextTurn = playerTurn == "white" ? "black" : "white";
+
+    const king = kings[nextTurn];
     const { newThreatMapWhite, newThreatMapBlack } = updateThreatMaps(
       board,
-      boardSize
+      boardSize,
+      king
     );
 
     setThreatMapWhite(newThreatMapWhite);
@@ -60,7 +74,6 @@ function App() {
     colourThreatMap(ctx, tileSize, newThreatMapWhite, red);
     colourThreatMap(ctx, tileSize, newThreatMapBlack, blue);
 
-    const nextTurn = playerTurn == "white" ? "black" : "white";
     setPlayerTurn(nextTurn);
   }, [board]);
 
@@ -73,15 +86,15 @@ function App() {
     const piece = board[row][col];
     const pieceColour = piece.colour;
     const isOwnPiece = pieceColour === playerTurn;
-
+    const king = kings[playerTurn];
+    console.log(pieceColour, king.colour);
     if (isOwnPiece) {
       setSelectedPiece(piece);
-      let { legalMoves, _ } = piece.generateLegalMoves(board);
+      let { legalMoves, _ } = piece.generateLegalMoves(board, king);
       setLegalMoves(legalMoves);
       redrawBoard(canvas, board, boardSize, tileSize);
       drawLegalMoves(legalMoves, tileSize, ctx, red);
     } else if (selectedPiece) {
-
       let newPos = { col, row };
       let { newBoard, isPositionFound } = move(
         selectedPiece,
@@ -90,14 +103,7 @@ function App() {
         legalMoves
       );
       if (isPositionFound) {
-        if (selectedPiece instanceof King){
-          setKings(prev => ({
-            ...prev,
-            pieceColour: selectedPiece,
-          }));        }
         setBoard(newBoard);
-        setLegalMoves([]);
-        setSelectedPiece(undefined);
       }
     }
   };

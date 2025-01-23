@@ -58,7 +58,7 @@ class King {
     );
   }
 
-  generateLegalMoves(board, king, enteringFromIsKingInCheck = false) {
+  generateLegalMoves(board, king = null, enteringFromIsKingInCheck = false) {
     const { x: currentCol, y: currentRow } = this.position;
     const legalMoves = [];
     const isProtecting = [];
@@ -85,7 +85,8 @@ class King {
           newBoard[currentRow][currentCol] = 0;
           newBoard[row][col] = this;
           this.position = { x: col, y: row };
-          let kingInCheck = isKingInCheck(this, newBoard);
+          // Could use this here, but leaving king in for testing.
+          let kingInCheck = isKingInCheck(king, newBoard);
           this.position = { x: currentCol, y: currentRow };
           if (!kingInCheck) {
             legalMoves.push(position);

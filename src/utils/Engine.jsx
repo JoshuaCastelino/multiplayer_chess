@@ -23,7 +23,8 @@ export function generateThreatMapKey(row, col) {
   return `${row}${col}`;
 }
 
-export function updateThreatMaps(newBoard, boardSize) {
+export function updateThreatMaps(newBoard, boardSize, king) {
+  console.log(king);
   const newThreatMapBlack = {};
   const newThreatMapWhite = {};
 
@@ -49,7 +50,10 @@ export function updateThreatMaps(newBoard, boardSize) {
           }
         });
       } else {
-        const { legalMoves, isProtecting } = piece.generateLegalMoves(newBoard);
+        const { legalMoves, isProtecting } = piece.generateLegalMoves(
+          newBoard,
+          king
+        );
 
         addThreats(legalMoves, colourThreatMap, piece);
         addThreats(isProtecting, colourThreatMap, piece);
@@ -128,9 +132,9 @@ export function initialise(ctx, boardSize) {
       board[position.y][position.x] = newPiece;
       if (type == King) {
         if (isEven) {
-          whiteKing = newPiece;
-        } else {
           blackKing = newPiece;
+        } else {
+          whiteKing = newPiece;
         }
       }
     }
@@ -196,7 +200,6 @@ export function isKingInCheck(king, board) {
 
       const { legalMoves, _ } = piece.generateLegalMoves(board, king, true);
       for (const { col, row } of legalMoves) {
-        console.log(piece);
         if (col == king.position.x && row == king.position.y) {
           console.log("king in check");
           return true;
