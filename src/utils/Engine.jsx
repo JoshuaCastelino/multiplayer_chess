@@ -224,3 +224,23 @@ export function findKing(board, color) {
 
   return null;
 }
+
+export function isPiecePinned(
+  king,
+  curPiece,
+  board,
+  curRow,
+  curCol,
+  newRow,
+  newCol
+) {
+  // Update the pieces position and simulate board state after
+  const newBoard = board.map((newRow) => [...newRow]);
+  newBoard[curRow][curCol] = 0;
+  newBoard[newRow][newCol] = curPiece;
+  curPiece.position = { x: newCol, y: newRow };
+
+  let kingInCheck = isKingInCheck(king, newBoard);
+  curPiece.position = { x: curCol, y: curRow };
+  return kingInCheck;
+}

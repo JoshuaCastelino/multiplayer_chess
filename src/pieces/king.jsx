@@ -1,5 +1,5 @@
 import { generateThreatMapKey } from "../utils/Engine";
-import { isKingInCheck } from "../utils/Engine";
+import { isPiecePinned } from "../utils/Engine";
 
 class King {
   constructor(colour, position, ctx) {
@@ -81,22 +81,11 @@ class King {
 
       if (!tileOccupiedBySameColour || tileIsEmpty) {
         if (!enteringFromIsKingInCheck) {
-          const newBoard = board.map((row) => [...row]);
-          newBoard[curRow][curCol] = 0;
-          newBoard[row][col] = this;
-          this.position = { x: col, y: row };
-          // Could use this here, but leaving king in for testing.
-          let kingInCheck = isKingInCheck(king, newBoard);
-          this.position = { x: curCol, y: curRow };
-          if (!kingInCheck) {
+          if (
+            !this.isPiecePinned(king, this, board, curRow, curCol, row, col)
+          ) {
             legalMoves.push(position);
           }
-
-          // if (
-          //   !this.isPiecePinned(king, this, board, curRow, curCol, row, col)
-          // ) {
-          //   legalMoves.push(position);
-          // }
         } else {
           legalMoves.push(position);
         }
@@ -106,18 +95,6 @@ class King {
     }
 
     return { legalMoves, isProtecting };
-  }
-
-  isPiecePinned(king, curPiece, board, curRow, curCol, newRow, newCol) {
-    // Update the pieces position and simulate board state after
-    const newBoard = board.map((newRow) => [...newRow]);
-    newBoard[curRow][curCol] = 0;
-    newBoard[newRow][newCol] = curPiece;
-    curPiece.position = { x: newCol, y: newRow };
-
-    let kingInCheck = kingInCheck(king, newBoard);
-    curPiece.position = { x: curCol, y: curRow };
-    return kingInCheck;
   }
 }
 
