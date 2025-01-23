@@ -166,10 +166,9 @@ export function move(piece, newPosition, board, legalMoves) {
 
   const newBoard = board.map((row) => [...row]);
 
-  // Clear current position
+  // 0 is a really shit way to store an empty state
   newBoard[currentRow][currentCol] = 0;
 
-  // Handle promotion if it's a Pawn
   if (piece instanceof Pawn) {
     const promotionAvailable =
       targetRow === 0 || targetRow === board.length - 1;
@@ -184,7 +183,6 @@ export function move(piece, newPosition, board, legalMoves) {
     }
   }
 
-  // Update position and place piece on the new position
   piece.position = { x: targetCol, y: targetRow };
   newBoard[targetRow][targetCol] = piece;
 
@@ -198,7 +196,7 @@ export function isKingInCheck(king, board) {
 
       const { legalMoves, _ } = piece.generateLegalMoves(board, king, true);
       for (const { col, row } of legalMoves) {
-        console.log(piece, )
+        console.log(piece);
         if (col == king.position.x && row == king.position.y) {
           console.log("king in check");
           return true;
@@ -214,12 +212,12 @@ export function findKing(board, color) {
   for (const row of board) {
     for (const piece of row) {
       if (piece === 0) continue;
-      
+
       if (piece.type === "King" && piece.colour === color) {
         return piece;
       }
     }
   }
-  
+
   return null;
 }

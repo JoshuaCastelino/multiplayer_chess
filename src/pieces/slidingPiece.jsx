@@ -6,9 +6,7 @@ class SlidingPiece {
   }
 
   isOnBoard(col, row) {
-    return (
-      col >= 0 && col < 8 && row >= 0 && row < 8
-    );
+    return col >= 0 && col < 8 && row >= 0 && row < 8;
   }
 
   // Function to generate legal moves for the piece
@@ -27,7 +25,7 @@ class SlidingPiece {
       let moveInBounds = this.isOnBoard(col, row);
 
       while (moveInBounds && !pathBlocked) {
-        let position = {row, col}
+        let position = { row, col };
         let pieceInTile = board[row][col];
         let tileIsNotEmpty = pieceInTile !== 0;
         if (tileIsNotEmpty) {
@@ -47,28 +45,6 @@ class SlidingPiece {
     }
 
     return { legalMoves, isProtecting };
-  }
-
-  // Function to move the piece if the target position is valid
-  move(newPosition, board, legalMoves) {
-    const { col: targetCol, row: targetRow } = newPosition;
-    const { x: currentCol, y: currentRow } = this.position;
-
-    let isPositionFound = false;
-
-    isPositionFound = legalMoves.some(
-      (move) => move.col === targetCol && move.row === targetRow
-    );
-
-    const newBoard = board.map((row) => [...row]);
-
-    if (isPositionFound) {
-      newBoard[currentRow][currentCol] = 0;
-      newBoard[targetRow][targetCol] = this;
-      this.position = { x: targetCol, y: targetRow };
-    }
-
-    return { newBoard, isPositionFound };
   }
 }
 
