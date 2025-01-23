@@ -31,7 +31,7 @@ class Pawn {
     this.context.closePath();
   }
 
-  generateLegalMoves(board, enteringFromIsKingInCheck = false) {
+  generateLegalMoves(board, king, enteringFromIsKingInCheck = false) {
     const { x: currentCol, y: currentRow } = this.position;
     const direction = this.colour === "white" ? -1 : 1;
     const legalMoves = [];
@@ -39,7 +39,7 @@ class Pawn {
 
     const oneStepRow = currentRow + direction;
 
-    // Forward 1 step (if empty)
+    
     if (
       this.isOnBoard(oneStepRow, currentCol) &&
       board[oneStepRow][currentCol] === 0

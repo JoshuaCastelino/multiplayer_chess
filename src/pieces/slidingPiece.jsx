@@ -12,7 +12,7 @@ class SlidingPiece {
   }
 
   // Function to generate legal moves for the piece
-  generateLegalMoves(board, enteringFromIsKingInCheck = false) {
+  generateLegalMoves(board, king, enteringFromIsKingInCheck = false) {
     const { x: currentCol, y: currentRow } = this.position;
     const directions = this.directions;
     // The moves that the piece can take when it is its turn

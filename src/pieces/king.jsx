@@ -58,7 +58,7 @@ class King {
     );
   }
 
-  generateLegalMoves(board, enteringFromIsKingInCheck = false) {
+  generateLegalMoves(board, king, enteringFromIsKingInCheck = false) {
     const { x: currentCol, y: currentRow } = this.position;
     const legalMoves = [];
     const isProtecting = [];
@@ -81,7 +81,6 @@ class King {
 
       if (!tileOccupiedBySameColour || tileIsEmpty) {
         if (!enteringFromIsKingInCheck) {
-          console.log("entering here");
           const newBoard = board.map((row) => [...row]);
           newBoard[currentRow][currentCol] = 0;
           newBoard[row][col] = this;

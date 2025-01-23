@@ -159,9 +159,7 @@ export function move(piece, newPosition, board, legalMoves) {
   const { x: currentCol, y: currentRow } = piece.position;
 
   if (
-    !legalMoves.some(
-      (move) => move.col === targetCol && move.row === targetRow
-    )
+    !legalMoves.some((move) => move.col === targetCol && move.row === targetRow)
   ) {
     return { newBoard: board, isPositionFound: false };
   }
@@ -173,7 +171,8 @@ export function move(piece, newPosition, board, legalMoves) {
 
   // Handle promotion if it's a Pawn
   if (piece instanceof Pawn) {
-    const promotionAvailable = targetRow === 0 || targetRow === board.length - 1;
+    const promotionAvailable =
+      targetRow === 0 || targetRow === board.length - 1;
     piece.firstMove = false;
 
     if (promotionAvailable) {
@@ -192,23 +191,35 @@ export function move(piece, newPosition, board, legalMoves) {
   return { newBoard, isPositionFound: true };
 }
 
-
 export function isKingInCheck(king, board) {
   for (const row of board) {
     for (const piece of row) {
       if (piece.colour === king.colour || piece === 0) continue;
 
-      if (piece instanceof Pawn) {
-      } else {
-        const { legalMoves, _ } = piece.generateLegalMoves(board, true);
-        for (const { col, row } of legalMoves) {
-          if (col == king.position.x && row == king.position.y) {
-            console.log("king in check");
-            return true;
-          }
+      const { legalMoves, _ } = piece.generateLegalMoves(board, king, true);
+      for (const { col, row } of legalMoves) {
+        console.log(piece, )
+        if (col == king.position.x && row == king.position.y) {
+          console.log("king in check");
+          return true;
         }
       }
     }
   }
+
   return false;
+}
+
+export function findKing(board, color) {
+  for (const row of board) {
+    for (const piece of row) {
+      if (piece === 0) continue;
+      
+      if (piece.type === "King" && piece.colour === color) {
+        return piece;
+      }
+    }
+  }
+  
+  return null;
 }

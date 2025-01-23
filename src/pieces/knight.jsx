@@ -38,7 +38,7 @@ class Knight {
     this.ctx.stroke();
   }
 
-  generateLegalMoves(board, enteringFromIsKingInCheck = false) {
+  generateLegalMoves(board, king, enteringFromIsKingInCheck = false) {
     const { x: currentCol, y: currentRow } = this.position;
     const boardSize = board.length;
 

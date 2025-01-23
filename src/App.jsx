@@ -13,6 +13,7 @@ import {
   drawLegalMoves,
   colourCheck,
 } from "./utils/Render";
+import King from "./pieces/king";
 
 function App() {
   const canvasRef = useRef(null);
@@ -80,6 +81,7 @@ function App() {
       redrawBoard(canvas, board, boardSize, tileSize);
       drawLegalMoves(legalMoves, tileSize, ctx, red);
     } else if (selectedPiece) {
+
       let newPos = { col, row };
       let { newBoard, isPositionFound } = move(
         selectedPiece,
@@ -88,6 +90,11 @@ function App() {
         legalMoves
       );
       if (isPositionFound) {
+        if (selectedPiece instanceof King){
+          setKings(prev => ({
+            ...prev,
+            pieceColour: selectedPiece,
+          }));        }
         setBoard(newBoard);
         setLegalMoves([]);
         setSelectedPiece(undefined);
