@@ -1,3 +1,4 @@
+import { isPiecePinned } from "../utils/Engine";
 import Queen from "./queen";
 
 class Pawn {
@@ -31,34 +32,29 @@ class Pawn {
     this.context.closePath();
   }
 
-  generateLegalMoves(board, king, enteringFromIsKingInCheck = false) {
-    const { x: currentCol, y: currentRow } = this.position;
+  generateLegalMoves(board) {
+    const { x: curCol, y: curRow } = this.position;
     const direction = this.colour === "white" ? -1 : 1;
     const legalMoves = [];
     const isProtecting = [];
+    const oneStepRow = curRow + direction;
+    const oneStepInBounds = this.isOnBoard(oneStepRow, curCol);
+    const oneStepTileIsEmpty = board[oneStepRow][curCol] === 0;
 
-    const oneStepRow = currentRow + direction;
-
-    if (
-      this.isOnBoard(oneStepRow, currentCol) &&
-      board[oneStepRow][currentCol] === 0
-    ) {
-      legalMoves.push({ row: oneStepRow, col: currentCol });
+    if (oneStepInBounds && oneStepTileIsEmpty) {
+      legalMoves.push({ row: oneStepRow, col: curCol });
       // Forward 2 steps (if empty and first move)
       if (this.firstMove) {
-        const twoStepRow = currentRow + 2 * direction;
-        if (
-          this.isOnBoard(twoStepRow, currentCol) &&
-          board[twoStepRow][currentCol] === 0
-        ) {
-          legalMoves.push({ row: twoStepRow, col: currentCol });
+        const twoStepRow = curRow + 2 * direction;
+        if (this.isOnBoard(twoStepRow, curCol) && board[twoStepRow][curCol] === 0) {
+          legalMoves.push({ row: twoStepRow, col: curCol });
         }
       }
     }
 
     // Capture diagonals (left and right)
     [-1, 1].forEach((offset) => {
-      const captureCol = currentCol + offset;
+      const captureCol = curCol + offset;
       if (this.isOnBoard(oneStepRow, captureCol)) {
         const occupant = board[oneStepRow][captureCol];
         if (occupant !== 0) {

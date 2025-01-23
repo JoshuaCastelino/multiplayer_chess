@@ -1,18 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 
-import {
-  updateThreatMaps,
-  initialise,
-  pointToCoordinate,
-  isInBounds,
-  move,
-} from "./utils/Engine";
-import {
-  redrawBoard,
-  colourThreatMap,
-  drawLegalMoves,
-  colourCheck,
-} from "./utils/Render";
+import { updateThreatMaps, initialise, pointToCoordinate, isInBounds, move, isPiecePinned } from "./utils/Engine";
+import { redrawBoard, colourThreatMap, drawLegalMoves, colourCheck } from "./utils/Render";
 import King from "./pieces/king";
 
 function App() {
@@ -34,8 +23,7 @@ function App() {
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
-    const { board, threatMapWhite, threatMapBlack, blackKing, whiteKing } =
-      initialise(ctx, boardSize);
+    const { board, threatMapWhite, threatMapBlack, blackKing, whiteKing } = initialise(ctx, boardSize);
     setBoard(board);
     setThreatMapWhite(threatMapWhite);
     setThreatMapBlack(threatMapBlack);
@@ -61,11 +49,7 @@ function App() {
     const nextTurn = playerTurn == "white" ? "black" : "white";
 
     const king = kings[nextTurn];
-    const { newThreatMapWhite, newThreatMapBlack } = updateThreatMaps(
-      board,
-      boardSize,
-      king
-    );
+    const { newThreatMapWhite, newThreatMapBlack } = updateThreatMaps(board, boardSize, king);
 
     setThreatMapWhite(newThreatMapWhite);
     setThreatMapBlack(newThreatMapBlack);
@@ -87,21 +71,17 @@ function App() {
     const pieceColour = piece.colour;
     const isOwnPiece = pieceColour === playerTurn;
     const king = kings[playerTurn];
-    console.log(pieceColour, king.colour);
     if (isOwnPiece) {
       setSelectedPiece(piece);
-      let { legalMoves, _ } = piece.generateLegalMoves(board, king);
+      let { legalMoves: candidateMoves, isProtecting } = piece.generateLegalMoves(board);
+      const legalMoves = candidateMoves.filter((move) => {
+        return !isPiecePinned(king, piece, board, piece.position.y, piece.position.x, move.row, move.col);
+      });
       setLegalMoves(legalMoves);
       redrawBoard(canvas, board, boardSize, tileSize);
       drawLegalMoves(legalMoves, tileSize, ctx, red);
     } else if (selectedPiece) {
-      let newPos = { col, row };
-      let { newBoard, isPositionFound } = move(
-        selectedPiece,
-        newPos,
-        board,
-        legalMoves
-      );
+      let { newBoard, isPositionFound } = move(selectedPiece, { col, row }, board, legalMoves);
       if (isPositionFound) {
         setBoard(newBoard);
       }
@@ -117,12 +97,7 @@ function App() {
         alignContent: "center",
       }}
     >
-      <canvas
-        ref={canvasRef}
-        width={tileSize * boardSize}
-        height={tileSize * boardSize}
-        style={{ border: "1px solid black" }}
-      ></canvas>
+      <canvas ref={canvasRef} width={tileSize * boardSize} height={tileSize * boardSize} style={{ border: "1px solid black" }}></canvas>
     </div>
   );
 }

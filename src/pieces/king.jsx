@@ -53,9 +53,7 @@ class King {
   }
 
   isOnBoard(colToCheck, rowToCheck) {
-    return (
-      colToCheck >= 0 && colToCheck < 8 && rowToCheck >= 0 && rowToCheck < 8
-    );
+    return colToCheck >= 0 && colToCheck < 8 && rowToCheck >= 0 && rowToCheck < 8;
   }
 
   generateLegalMoves(board, king = null, enteringFromIsKingInCheck = false) {
@@ -76,17 +74,10 @@ class King {
 
       const pieceInTile = board[row][col];
       const tileIsEmpty = pieceInTile == 0;
-      const tileOccupiedBySameColour =
-        !tileIsEmpty && pieceInTile.colour == this.colour;
+      const tileOccupiedBySameColour = !tileIsEmpty && pieceInTile.colour == this.colour;
 
       if (!tileOccupiedBySameColour || tileIsEmpty) {
-        if (!enteringFromIsKingInCheck) {
-          if (!isPiecePinned(king, this, board, curRow, curCol, row, col)) {
-            legalMoves.push(position);
-          }
-        } else {
-          legalMoves.push(position);
-        }
+        legalMoves.push(position);
       } else {
         isProtecting.push(position);
       }

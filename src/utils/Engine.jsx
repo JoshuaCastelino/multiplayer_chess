@@ -23,8 +23,7 @@ export function generateThreatMapKey(row, col) {
   return `${row}${col}`;
 }
 
-export function updateThreatMaps(newBoard, boardSize, king) {
-  console.log(king);
+export function updateThreatMaps(newBoard, boardSize) {
   const newThreatMapBlack = {};
   const newThreatMapWhite = {};
 
@@ -34,8 +33,7 @@ export function updateThreatMaps(newBoard, boardSize, king) {
       if (piece === 0) continue;
 
       const pieceColour = piece.colour;
-      const colourThreatMap =
-        pieceColour === "white" ? newThreatMapWhite : newThreatMapBlack;
+      const colourThreatMap = pieceColour === "white" ? newThreatMapWhite : newThreatMapBlack;
 
       if (piece instanceof Pawn) {
         const direction = pieceColour === "white" ? -1 : 1;
@@ -50,10 +48,7 @@ export function updateThreatMaps(newBoard, boardSize, king) {
           }
         });
       } else {
-        const { legalMoves, isProtecting } = piece.generateLegalMoves(
-          newBoard,
-          king
-        );
+        const { legalMoves, isProtecting } = piece.generateLegalMoves(newBoard);
 
         addThreats(legalMoves, colourThreatMap, piece);
         addThreats(isProtecting, colourThreatMap, piece);
@@ -68,9 +63,7 @@ export function updateThreatMaps(newBoard, boardSize, king) {
 }
 
 export function initialise(ctx, boardSize) {
-  const board = new Array(boardSize)
-    .fill(null)
-    .map(() => new Array(boardSize).fill(0));
+  const board = new Array(boardSize).fill(null).map(() => new Array(boardSize).fill(0));
   const pieces = [
     {
       type: Rook,
@@ -140,8 +133,7 @@ export function initialise(ctx, boardSize) {
     }
   }
 
-  let { newThreatMapWhite: threatMapWhite, newThreatMapBlack: threatMapBlack } =
-    updateThreatMaps(board, boardSize);
+  let { newThreatMapWhite: threatMapWhite, newThreatMapBlack: threatMapBlack } = updateThreatMaps(board, boardSize);
 
   return { board, threatMapWhite, threatMapBlack, blackKing, whiteKing };
 }
@@ -162,9 +154,7 @@ export function move(piece, newPosition, board, legalMoves) {
   const { col: targetCol, row: targetRow } = newPosition;
   const { x: currentCol, y: currentRow } = piece.position;
 
-  if (
-    !legalMoves.some((move) => move.col === targetCol && move.row === targetRow)
-  ) {
+  if (!legalMoves.some((move) => move.col === targetCol && move.row === targetRow)) {
     return { newBoard: board, isPositionFound: false };
   }
 
@@ -174,16 +164,11 @@ export function move(piece, newPosition, board, legalMoves) {
   newBoard[currentRow][currentCol] = 0;
 
   if (piece instanceof Pawn) {
-    const promotionAvailable =
-      targetRow === 0 || targetRow === board.length - 1;
+    const promotionAvailable = targetRow === 0 || targetRow === board.length - 1;
     piece.firstMove = false;
 
     if (promotionAvailable) {
-      piece = new Queen(
-        piece.colour,
-        { y: targetRow, x: targetCol },
-        piece.context
-      );
+      piece = new Queen(piece.colour, { y: targetRow, x: targetCol }, piece.context);
     }
   }
 
@@ -225,15 +210,7 @@ export function findKing(board, color) {
   return null;
 }
 
-export function isPiecePinned(
-  king,
-  curPiece,
-  board,
-  curRow,
-  curCol,
-  newRow,
-  newCol
-) {
+export function isPiecePinned(king, curPiece, board, curRow, curCol, newRow, newCol) {
   // Update the pieces position and simulate board state after
   const newBoard = board.map((row) => [...row]);
   newBoard[curRow][curCol] = 0;
