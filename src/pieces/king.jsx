@@ -81,9 +81,7 @@ class King {
 
       if (!tileOccupiedBySameColour || tileIsEmpty) {
         if (!enteringFromIsKingInCheck) {
-          if (
-            !this.isPiecePinned(king, this, board, curRow, curCol, row, col)
-          ) {
+          if (!isPiecePinned(king, this, board, curRow, curCol, row, col)) {
             legalMoves.push(position);
           }
         } else {

@@ -235,7 +235,7 @@ export function isPiecePinned(
   newCol
 ) {
   // Update the pieces position and simulate board state after
-  const newBoard = board.map((newRow) => [...newRow]);
+  const newBoard = board.map((row) => [...row]);
   newBoard[curRow][curCol] = 0;
   newBoard[newRow][newCol] = curPiece;
   curPiece.position = { x: newCol, y: newRow };
