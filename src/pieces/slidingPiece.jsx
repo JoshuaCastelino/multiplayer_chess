@@ -12,7 +12,7 @@ class SlidingPiece {
   }
 
   // Function to generate legal moves for the piece
-  generateLegalMoves(board) {
+  generateLegalMoves(board, threatMap) {
     const { x: currentCol, y: currentRow } = this.position;
     const directions = this.directions;
     // The moves that the piece can take when it is its turn

@@ -36,7 +36,7 @@ class Knight {
     this.ctx.stroke();
   }
 
-  generateLegalMoves(board) {
+  generateLegalMoves(board, threatMap) {
     const { x: currentCol, y: currentRow } = this.position;
     const boardSize = board.length;
 

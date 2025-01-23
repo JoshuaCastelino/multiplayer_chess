@@ -66,7 +66,7 @@ class Pawn {
     };
   }
 
-  generateLegalMoves(board) {
+  generateLegalMoves(board, threatMap) {
     const { x: currentCol, y: currentRow } = this.position;
     const direction = this.colour === "white" ? -1 : 1;
     const legalMoves = [];

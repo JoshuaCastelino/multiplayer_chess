@@ -57,6 +57,7 @@ function App() {
 
     const nextTurn = playerTurn == "white" ? "black" : "white"
     const threatMap = playerTurn == "white" ? newThreatMapWhite : newThreatMapBlack;
+    const checkerThreatMap = playerTurn == "black" ? newThreatMapWhite : newThreatMapBlack;
     // Idk why this needs to be kings[playerTurn] and not kings[nextTurn]
     const king = kings[playerTurn]
     const kingRow = king.position.y
@@ -64,21 +65,20 @@ function App() {
     const threatMapKey = generateThreatMapKey(kingRow, kingCol)
     const threatMapValue = threatMap[threatMapKey]
 
-    if (threatMapValue && threatMapValue.length > 0){
-      const attackerCount = threatMapValue.length
-      const { legalMoves, isProtecting } = king.generateLegalMoves(board, threatMap)
-      const kingIsTrapped = legalMoves.length == 0
-      if (kingIsTrapped){
-        if (attackerCount > 1){
-          console.log("checkmate")
-          return
-        }
-        
-      }
+    // if (threatMapValue && threatMapValue.length > 0){
+    //   const attackerCount = threatMapValue.length
+    //   const { legalMoves, isProtecting } = king.generateLegalMoves(board, threatMap)
+    //   const kingIsTrapped = legalMoves.length == 0
+    //   if (kingIsTrapped){
+    //     if (attackerCount > 1){
+    //       console.log("checkmate")
+    //       return
+    //     }
+    //   }
 
-      console.log(`${nextTurn} is in check`)
-      colourCheck(ctx, tileSize, kingRow, kingCol)
-    }
+    //   console.log(`${nextTurn} is in check`)
+    //   colourCheck(ctx, tileSize, kingRow, kingCol)
+    // }
 
 
     setPlayerTurn(nextTurn);
@@ -94,6 +94,8 @@ function App() {
     const pieceColour = piece.colour;
     const isOwnPiece = pieceColour === playerTurn;
     const threatMap = pieceColour === "white" ? threatMapBlack : threatMapWhite;
+    const ownKing = kings[playerTurn]
+    // const kingKey = generateThreatMapKey(ownKing.position.y, ownKing.position.y)
 
     if (isOwnPiece) {
       setSelectedPiece(piece);
