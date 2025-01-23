@@ -91,11 +91,6 @@ class King {
       }
     }
 
-    // const positionKey = generateThreatMapKey(this.position.y, this.position.x);
-    // if (legalMoves.length == 0 && threatMap && positionKey in threatMap) {
-    //   console.log("No available moves")
-    // }
-
     return { legalMoves, isProtecting };
   }
 

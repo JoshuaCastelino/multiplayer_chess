@@ -57,6 +57,7 @@ function App() {
 
     const nextTurn = playerTurn == "white" ? "black" : "white"
     const threatMap = playerTurn == "white" ? newThreatMapWhite : newThreatMapBlack;
+    // Idk why this needs to be kings[playerTurn] and not kings[nextTurn]
     const king = kings[playerTurn]
     const kingRow = king.position.y
     const kingCol = king.position.x
@@ -64,7 +65,18 @@ function App() {
     const threatMapValue = threatMap[threatMapKey]
 
     if (threatMapValue && threatMapValue.length > 0){
-      console.log(`${playerTurn} is in check`)
+      const attackerCount = threatMapValue.length
+      const { legalMoves, isProtecting } = king.generateLegalMoves(board, threatMap)
+      const kingIsTrapped = legalMoves.length == 0
+      if (kingIsTrapped){
+        if (attackerCount > 1){
+          console.log("checkmate")
+          return
+        }
+        
+      }
+
+      console.log(`${nextTurn} is in check`)
       colourCheck(ctx, tileSize, kingRow, kingCol)
     }
 
@@ -97,9 +109,11 @@ function App() {
         board,
         legalMoves
       );
-      if (isPositionFound) setBoard(newBoard);
-      setLegalMoves([]);
-      setSelectedPiece(undefined);
+      if (isPositionFound){
+         setBoard(newBoard);
+        setLegalMoves([]);
+        setSelectedPiece(undefined);
+      }
     }
   };
 
