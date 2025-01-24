@@ -172,6 +172,35 @@ export function generateAllLegalMoves(board, king, playerTurn) {
   return { legalMovesByPosition, checkmated };
 }
 
+export function isPiecePinned(king, curPiece, board, curRow, curCol, newRow, newCol) {
+  // Update the pieces position and simulate board state after
+  const newBoard = board.map((row) => [...row]);
+  newBoard[curRow][curCol] = 0;
+  newBoard[newRow][newCol] = curPiece;
+  curPiece.position = { x: newCol, y: newRow };
+
+  let kingInCheck = isKingInCheck(king, newBoard);
+  curPiece.position = { x: curCol, y: curRow };
+  return kingInCheck;
+}
+
+export function isKingInCheck(king, board) {
+  for (const row of board) {
+    for (const piece of row) {
+      if (piece.colour === king.colour || piece === 0) continue;
+
+      const { legalMoves, _ } = piece.generateLegalMoves(board);
+      for (const { col, row } of legalMoves) {
+        if (col == king.position.x && row == king.position.y) {
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
+}
+
 export function move(piece, newPosition, board, legalMoves) {
   const { col: targetCol, row: targetRow } = newPosition;
   const { x: currentCol, y: currentRow } = piece.position;
@@ -200,23 +229,6 @@ export function move(piece, newPosition, board, legalMoves) {
   return { newBoard, isPositionFound: true };
 }
 
-export function isKingInCheck(king, board) {
-  for (const row of board) {
-    for (const piece of row) {
-      if (piece.colour === king.colour || piece === 0) continue;
-
-      const { legalMoves, _ } = piece.generateLegalMoves(board, king, true);
-      for (const { col, row } of legalMoves) {
-        if (col == king.position.x && row == king.position.y) {
-          return true;
-        }
-      }
-    }
-  }
-
-  return false;
-}
-
 export function findKing(board, color) {
   for (const row of board) {
     for (const piece of row) {
@@ -231,14 +243,3 @@ export function findKing(board, color) {
   return null;
 }
 
-export function isPiecePinned(king, curPiece, board, curRow, curCol, newRow, newCol) {
-  // Update the pieces position and simulate board state after
-  const newBoard = board.map((row) => [...row]);
-  newBoard[curRow][curCol] = 0;
-  newBoard[newRow][newCol] = curPiece;
-  curPiece.position = { x: newCol, y: newRow };
-
-  let kingInCheck = isKingInCheck(king, newBoard);
-  curPiece.position = { x: curCol, y: curRow };
-  return kingInCheck;
-}

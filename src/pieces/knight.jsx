@@ -5,7 +5,7 @@ class Knight {
     this.colour = colour;
     this.position = position;
     this.ctx = ctx;
-    this.firstMove = false
+    this.firstMove = true
     this.directions = [
       [-2, -1], // Up-left
       [-2, 1],  // Up-right

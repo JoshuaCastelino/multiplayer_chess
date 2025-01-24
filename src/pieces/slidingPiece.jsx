@@ -5,6 +5,7 @@ class SlidingPiece {
     this.colour = colour;
     this.position = position;
     this.ctx = ctx;
+    this.firstMove = true
   }
 
 

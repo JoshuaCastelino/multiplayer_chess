@@ -5,7 +5,7 @@ class King {
     this.colour = colour;
     this.position = position;
     this.ctx = ctx;
-    this.firstMove = false;
+    this.firstMove = true;
     this.directions = [
       [-1, 0], // Left
       [1, 0], // Right
@@ -52,8 +52,8 @@ class King {
     this.ctx.stroke();
   }
 
-  checkCastle(board) {
-    if (!this.firstMove) return { left: null, right: null };
+  checkCastle(board, kingRow, kingCol) {
+    if (!this.firstMove) return false;
 
     function walk(board, row, col, direction) {
       const boardSize = board.length;
@@ -65,15 +65,12 @@ class King {
           continue;
         }
         if (curPiece instanceof Rook && curPiece.firstMove) {
-          return { canCastle: true, rook: curPiece };
+          return true;
         }
         break;
       }
       return false;
     }
-
-    const kingRow = this.position.y;
-    const kingCol = this.position.x;
 
     // Check towards the right (increasing x)
     const right = walk(board, kingRow, kingCol + 1, 1);
@@ -88,6 +85,8 @@ class King {
     const boardSize = board.length;
     const legalMoves = [];
     const isProtecting = [];
+    const kingRow = this.position.y;
+    const kingCol = this.position.x;
 
     for (const [colOffset, rowOffset] of this.directions) {
       let col = curCol + colOffset;
@@ -109,14 +108,13 @@ class King {
       }
     }
 
-    const { left, right } = this.checkCastle(board);
+    const { left, right } = this.checkCastle(board, kingRow, kingCol);
     if (left) {
       legalMoves.push({ row: kingRow, col: kingCol - 2 });
     }
     if (right){
       legalMoves.push({ row: kingRow, col: kingCol + 2 })
     }
-
     return { legalMoves, isProtecting };
   }
 }
