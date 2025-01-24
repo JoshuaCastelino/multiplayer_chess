@@ -1,7 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 
-import { updateThreatMaps, initialise, pointToCoordinate, isInBounds, move, isPiecePinned, generateAllLegalMoves, generateThreatMapKey } from "./utils/Engine";
-import { redrawBoard, colourThreatMap, drawLegalMoves, colourCheck } from "./utils/Render";
+import {
+  updateThreatMaps,
+  initialise,
+  pointToCoordinate,
+  isInBounds,
+  move,
+  generateAllLegalMoves,
+  generateThreatMapKey,
+} from "./utils/Engine";
+import { redrawBoard, colourThreatMap, drawLegalMoves } from "./utils/Render";
 import King from "./pieces/king";
 
 function App() {
@@ -47,14 +55,14 @@ function App() {
     const king = kings[nextTurn];
     const { newThreatMapWhite, newThreatMapBlack } = updateThreatMaps(board, boardSize, king);
     const { legalMovesByPosition, checkmated } = generateAllLegalMoves(board, king, nextTurn);
-    
+
     if (checkmated) {
       console.log(`${nextTurn} has been checmkated, L + RATIO`);
     }
 
     redrawBoard(canvas, board, boardSize, tileSize);
-    colourThreatMap(ctx, tileSize, newThreatMapWhite, red);
-    colourThreatMap(ctx, tileSize, newThreatMapBlack, blue);
+    // colourThreatMap(ctx, tileSize, newThreatMapWhite, red);
+    // colourThreatMap(ctx, tileSize, newThreatMapBlack, blue);
     setPlayerTurn(nextTurn);
     setAllLegalMoves(legalMovesByPosition);
   }, [board]);
@@ -92,7 +100,12 @@ function App() {
         alignContent: "center",
       }}
     >
-      <canvas ref={canvasRef} width={tileSize * boardSize} height={tileSize * boardSize} style={{ border: "1px solid black" }}></canvas>
+      <canvas
+        ref={canvasRef}
+        width={tileSize * boardSize}
+        height={tileSize * boardSize}
+        style={{ border: "1px solid black" }}
+      ></canvas>
     </div>
   );
 }

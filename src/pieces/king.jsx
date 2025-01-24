@@ -56,7 +56,7 @@ class King {
     return colToCheck >= 0 && colToCheck < 8 && rowToCheck >= 0 && rowToCheck < 8;
   }
 
-  generateLegalMoves(board, king = null, enteringFromIsKingInCheck = false) {
+  generateLegalMoves(board) {
     const { x: curCol, y: curRow } = this.position;
     const legalMoves = [];
     const isProtecting = [];
@@ -65,7 +65,6 @@ class King {
       let col = curCol + colOffset;
       let row = curRow + rowOffset;
       let position = { row, col };
-      let key = generateThreatMapKey(row, col);
       const moveNotInBounds = !this.isOnBoard(col, row);
 
       if (moveNotInBounds) {
