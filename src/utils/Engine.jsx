@@ -136,18 +136,6 @@ export function initialise(ctx, boardSize) {
   return { board, blackKing, whiteKing };
 }
 
-export function pointToCoordinate(canvasRef, e, tileSize) {
-  const canvas = canvasRef.current;
-
-  const rect = canvas.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-
-  const col = Math.floor(x / tileSize);
-  const row = Math.floor(y / tileSize);
-  return { row, col };
-}
-
 export function generateAllLegalMoves(board, king, playerTurn) {
   const legalMovesByPosition = {};
   let checkmated = true;
@@ -202,6 +190,7 @@ export function isKingInCheck(king, board) {
 }
 
 export function move(piece, newPosition, board, legalMoves) {
+  // Cheeky bit of polymorphism
   const { col: targetCol, row: targetRow } = newPosition;
   const { x: currentCol, y: currentRow } = piece.position;
 

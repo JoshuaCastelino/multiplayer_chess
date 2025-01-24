@@ -19,10 +19,10 @@ class Knight {
     
   }
 
-  draw(tileSize) {
+  draw(tileSize, offset = 0) {
     const { x, y } = this.position;
-    const centerX = x * tileSize + tileSize / 2;
-    const centerY = y * tileSize + tileSize / 2;
+    const centerX = offset + x * tileSize + tileSize / 2;
+    const centerY = offset + y * tileSize + tileSize / 2;
 
     const topWidth = tileSize / 2.5;
     const bottomWidth = tileSize / 1.5;

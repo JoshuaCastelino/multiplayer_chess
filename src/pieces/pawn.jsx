@@ -9,14 +9,14 @@ class Pawn {
     this.firstMove = true;
   }
 
-  draw(tileSize) {
+  draw(tileSize, offset = 0) {
     const { x, y } = this.position;
 
     const radius = 20;
 
     // Calculate pixel position based on board tile size
-    const pixelX = x * tileSize + tileSize / 2;
-    const pixelY = y * tileSize + tileSize / 2;
+    const pixelX = offset + x * tileSize + tileSize / 2;
+    const pixelY = offset + y * tileSize + tileSize / 2;
 
     // Draw a circle representing the pawn
     this.context.beginPath();

@@ -1,24 +1,71 @@
-export function redrawBoard(canvas, board, boardSize, tileSize) {
-  const ctx = canvas.getContext("2d");
+const offset = 20;
+const cornerRadius = 20; 
 
+export function drawRoundedRect(ctx, x, y, width, height, radius) {
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height - radius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  ctx.lineTo(x + radius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+}
+
+export function redrawBoard(canvas, board, boardSize, tileSize) {
+  const totalSize = boardSize * tileSize + offset * 2;
+  canvas.width = totalSize;
+  canvas.height = totalSize;
+
+  const ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  // Draw the board again
+
+  drawRoundedRect(ctx, 0, 0, canvas.width, canvas.height, cornerRadius);
+
+  ctx.fillStyle = "#5C4033"; 
+  ctx.fill();
+
+
   for (let row = 0; row < boardSize; row++) {
     for (let col = 0; col < boardSize; col++) {
+      const x = col * tileSize + offset;
+      const y = row * tileSize + offset;
       const isDark = (row + col) % 2 === 1;
-      ctx.fillStyle = isDark ? "#769656" : "#eeeed2"; // dark and light colours
-      ctx.fillRect(col * tileSize, row * tileSize, tileSize, tileSize);
+      ctx.fillStyle = isDark ? "#8B4513" : "#D2B48C";
+      ctx.fillRect(x, y, tileSize, tileSize);
     }
   }
-  // Draw each piece again
+
+  ctx.fillStyle = "white";
+  ctx.font = "14px Arial";
+
+  for (let row = 0; row < boardSize; row++) {
+    const rankLabel = (boardSize - row).toString();
+    const labelY = row * tileSize + offset + tileSize * 0.6;
+    ctx.fillText(rankLabel, offset * 0.4, labelY);
+    ctx.fillText(rankLabel, offset + boardSize * tileSize + 5, labelY);
+  }
+
+  for (let col = 0; col < boardSize; col++) {
+    const fileLabel = String.fromCharCode("a".charCodeAt(0) + col);
+    const labelX = col * tileSize + offset + tileSize * 0.45;
+    ctx.fillText(fileLabel, labelX, offset + boardSize * tileSize + 15);
+    ctx.fillText(fileLabel, labelX, offset * 0.7);
+  }
+
   for (let row of board) {
     for (let piece of row) {
-      if (piece != 0) {
-        piece.draw(tileSize);
+      if (piece !== 0) {
+        piece.draw(tileSize, offset);
       }
     }
   }
 }
+
+
 
 export function colourThreatMap(ctx, tileSize, threatMap, colour) {
   Object.keys(threatMap).forEach((key) => {
@@ -26,8 +73,8 @@ export function colourThreatMap(ctx, tileSize, threatMap, colour) {
     if (threats && threats.length > 0) {
       const row = key[0];
       const col = key[1];
-      const x = col * tileSize;
-      const y = row * tileSize;
+      const x = offset + col * tileSize;
+      const y = offset + row * tileSize;
       ctx.fillStyle = colour;
       ctx.fillRect(x, y, tileSize, tileSize);
     }
@@ -44,10 +91,23 @@ export function colourCheck(ctx, tileSize, row, col) {
 
 export function drawLegalMoves(legalMoves, tileSize, ctx, red) {
   legalMoves.forEach(({ row, col }) => {
-    const x = col * tileSize;
-    const y = row * tileSize;
+    const x = offset + col * tileSize;
+    const y = offset + row * tileSize;
 
     ctx.fillStyle = red;
     ctx.fillRect(x, y, tileSize, tileSize);
   });
+}
+
+
+export function pointToCoordinate(canvasRef, e, tileSize) {
+  const canvas = canvasRef.current;
+
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left - offset;
+  const y = e.clientY - rect.top - offset;
+
+  const col = Math.floor(x / tileSize);
+  const row = Math.floor(y / tileSize);
+  return { row, col };
 }

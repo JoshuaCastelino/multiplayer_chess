@@ -11,12 +11,12 @@ class Bishop extends SlidingPiece {
     ];
   }
 
-  draw(tileSize) {
+  draw(tileSize, offset = 0) {
     const { x, y } = this.position;
 
     // Calculate the center of the tile
-    const centerX = x * tileSize + tileSize / 2;
-    const centerY = y * tileSize + tileSize / 2;
+    const centerX = offset + x * tileSize + tileSize / 2;
+    const centerY = offset + y * tileSize + tileSize / 2;
 
     // Calculate triangle points
     const halfSize = tileSize / 3.5;

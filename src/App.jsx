@@ -3,13 +3,12 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   updateThreatMaps,
   initialise,
-  pointToCoordinate,
   isInBounds,
   move,
   generateAllLegalMoves,
   generateThreatMapKey,
 } from "./utils/Engine";
-import { redrawBoard, colourThreatMap, drawLegalMoves } from "./utils/Render";
+import { redrawBoard, pointToCoordinate, drawLegalMoves } from "./utils/Render";
 import King from "./pieces/king";
 
 function App() {
@@ -104,7 +103,6 @@ function App() {
         ref={canvasRef}
         width={tileSize * boardSize}
         height={tileSize * boardSize}
-        style={{ border: "1px solid black" }}
       ></canvas>
     </div>
   );
