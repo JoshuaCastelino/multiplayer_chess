@@ -5,6 +5,7 @@ class Knight {
     this.colour = colour;
     this.position = position;
     this.ctx = ctx;
+    this.firstMove = false
   }
 
   draw(tileSize) {
@@ -41,7 +42,9 @@ class Knight {
   generateLegalMoves(board) {
     const { x: currentCol, y: currentRow } = this.position;
     const boardSize = board.length;
-
+    const legalMoves = [];
+    const isProtecting = [];
+    
     const potentialMoves = [
       { row: currentRow - 2, col: currentCol - 1 },
       { row: currentRow - 2, col: currentCol + 1 },
@@ -53,8 +56,7 @@ class Knight {
       { row: currentRow + 2, col: currentCol + 1 },
     ];
 
-    const legalMoves = [];
-    const isProtecting = [];
+
     for (const move of potentialMoves) {
       const { row, col } = move;
       if (isInBounds(row, col, boardSize)) {

@@ -1,11 +1,10 @@
-import { generateThreatMapKey } from "../utils/Engine";
-import { isPiecePinned } from "../utils/Engine";
-
+import { isInBounds } from "../utils/Engine";
 class King {
   constructor(colour, position, ctx) {
     this.colour = colour;
     this.position = position;
     this.ctx = ctx;
+    this.firstMove = false
     this.directions = [
       [-1, 0], // Left
       [1, 0], // Right
@@ -52,12 +51,10 @@ class King {
     this.ctx.stroke();
   }
 
-  isOnBoard(colToCheck, rowToCheck) {
-    return colToCheck >= 0 && colToCheck < 8 && rowToCheck >= 0 && rowToCheck < 8;
-  }
 
   generateLegalMoves(board) {
     const { x: curCol, y: curRow } = this.position;
+    const boardSize = board.length
     const legalMoves = [];
     const isProtecting = [];
 
@@ -65,9 +62,8 @@ class King {
       let col = curCol + colOffset;
       let row = curRow + rowOffset;
       let position = { row, col };
-      const moveNotInBounds = !this.isOnBoard(col, row);
 
-      if (moveNotInBounds) {
+      if (!isInBounds(row, col, boardSize)) {
         continue;
       }
 
