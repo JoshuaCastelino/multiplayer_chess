@@ -150,6 +150,32 @@ export function pointToCoordinate(canvasRef, e, tileSize) {
   return { row, col };
 }
 
+export function generateAllLegalMoves(board, king, playerTurn) {
+  const positionToLegalMoves = {};
+  let checkMate = false
+
+  for (const row of board) {
+    for (const piece of row) {
+      if (piece.color !== playerTurn) continue;
+
+      const { x, y } = piece.position;
+      const key = generateThreatMapKey(y, x);
+      const { legalMoves: candidateMoves, _ } = piece.generateLegalMoves(board);
+      const legalMoves = candidateMoves.filter((move) => {
+        return !isPiecePinned(king, piece, board, y, x, move.row, move.col);
+      });
+
+      if (piece instanceof King && legalMoves.length === 0){
+        checkMate = true
+      }
+
+      positionToLegalMoves[key] = legalMoves;
+    }
+  }
+
+  return positionToLegalMoves, checkmate
+}
+
 export function move(piece, newPosition, board, legalMoves) {
   const { col: targetCol, row: targetRow } = newPosition;
   const { x: currentCol, y: currentRow } = piece.position;

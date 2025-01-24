@@ -18,6 +18,7 @@ function App() {
   const [playerTurn, setPlayerTurn] = useState("black");
   const [legalMoves, setLegalMoves] = useState([]);
   const [kings, setKings] = useState({ white: null, black: null });
+  const [allLegalMoves, setAllLegalMoves] = useState(null)
 
   // Called at first render
   useEffect(() => {
