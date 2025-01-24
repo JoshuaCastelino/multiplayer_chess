@@ -150,6 +150,7 @@ export function pointToCoordinate(canvasRef, e, tileSize) {
 
 export function generateAllLegalMoves(board, king, playerTurn) {
   const legalMovesByPosition = {};
+  let checkmated = true;
 
   for (const row of board) {
     for (const piece of row) {
@@ -161,11 +162,14 @@ export function generateAllLegalMoves(board, king, playerTurn) {
       const legalMoves = candidateMoves.filter((move) => {
         return !isPiecePinned(king, piece, board, y, x, move.row, move.col);
       });
+      if (legalMoves.length > 0){
+        checkmated = false
+      } 
       legalMovesByPosition[key] = legalMoves;
     }
   }
-  
-  return legalMovesByPosition;
+
+  return { legalMovesByPosition, checkmated };
 }
 
 export function move(piece, newPosition, board, legalMoves) {
@@ -204,7 +208,6 @@ export function isKingInCheck(king, board) {
       const { legalMoves, _ } = piece.generateLegalMoves(board, king, true);
       for (const { col, row } of legalMoves) {
         if (col == king.position.x && row == king.position.y) {
-          console.log("king in check");
           return true;
         }
       }

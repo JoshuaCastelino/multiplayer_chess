@@ -16,7 +16,7 @@ function App() {
   const [playerTurn, setPlayerTurn] = useState("black");
   const [legalMoves, setLegalMoves] = useState([]);
   const [kings, setKings] = useState({ white: null, black: null });
-  const [allLegalMoves, setAllLegalMoves] = useState(null)
+  const [allLegalMoves, setAllLegalMoves] = useState(null);
 
   // Called at first render
   useEffect(() => {
@@ -46,28 +46,32 @@ function App() {
     const nextTurn = playerTurn == "white" ? "black" : "white";
     const king = kings[nextTurn];
     const { newThreatMapWhite, newThreatMapBlack } = updateThreatMaps(board, boardSize, king);
-    const legalMovesByPosition = generateAllLegalMoves(board, king, nextTurn)
+    const { legalMovesByPosition, checkmated } = generateAllLegalMoves(board, king, nextTurn);
+    
+    if (checkmated) {
+      console.log(`${nextTurn} has been checmkated, L + RATIO`);
+    }
 
     redrawBoard(canvas, board, boardSize, tileSize);
     colourThreatMap(ctx, tileSize, newThreatMapWhite, red);
     colourThreatMap(ctx, tileSize, newThreatMapBlack, blue);
     setPlayerTurn(nextTurn);
-    setAllLegalMoves(legalMovesByPosition)
+    setAllLegalMoves(legalMovesByPosition);
   }, [board]);
 
   const selectPiece = (e, tileSize, board) => {
     const { row, col } = pointToCoordinate(canvasRef, e, tileSize);
     if (!isInBounds(row, col, boardSize)) return;
-    const positionKey = generateThreatMapKey(row, col)
+    const positionKey = generateThreatMapKey(row, col);
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     const piece = board[row][col];
     const pieceColour = piece.colour;
     const isOwnPiece = pieceColour === playerTurn;
     if (isOwnPiece) {
-      const legalMoves = allLegalMoves[positionKey] 
+      const legalMoves = allLegalMoves[positionKey];
       setSelectedPiece(piece);
-      setLegalMoves(allLegalMoves[positionKey])
+      setLegalMoves(allLegalMoves[positionKey]);
       setLegalMoves(legalMoves);
       redrawBoard(canvas, board, boardSize, tileSize);
       drawLegalMoves(legalMoves, tileSize, ctx, red);
@@ -77,7 +81,6 @@ function App() {
         setBoard(newBoard);
       }
     }
-    
   };
 
   return (
