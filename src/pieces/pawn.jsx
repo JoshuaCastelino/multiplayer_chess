@@ -1,4 +1,4 @@
-import { isPiecePinned } from "../utils/Engine";
+import { isInBounds, isPiecePinned } from "../utils/Engine";
 import Queen from "./queen";
 
 class Pawn {
@@ -40,13 +40,14 @@ class Pawn {
     const oneStepRow = curRow + direction;
     const oneStepInBounds = this.isOnBoard(oneStepRow, curCol);
     const oneStepTileIsEmpty = board[oneStepRow][curCol] === 0;
+    const boardSize = 8
 
     if (oneStepInBounds && oneStepTileIsEmpty) {
       legalMoves.push({ row: oneStepRow, col: curCol });
       // Forward 2 steps (if empty and first move)
       if (this.firstMove) {
         const twoStepRow = curRow + 2 * direction;
-        if (this.isOnBoard(twoStepRow, curCol) && board[twoStepRow][curCol] === 0) {
+        if (isInBounds(twoStepRow, curCol, boardSize) && board[twoStepRow][curCol] === 0) {
           legalMoves.push({ row: twoStepRow, col: curCol });
         }
       }
@@ -55,7 +56,7 @@ class Pawn {
     // Capture diagonals (left and right)
     [-1, 1].forEach((offset) => {
       const captureCol = curCol + offset;
-      if (this.isOnBoard(oneStepRow, captureCol)) {
+      if (isInBounds(oneStepRow, captureCol, boardSize)) {
         const occupant = board[oneStepRow][captureCol];
         if (occupant !== 0) {
           if (occupant.colour !== this.colour) {

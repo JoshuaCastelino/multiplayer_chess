@@ -58,7 +58,7 @@ class King {
     const legalMoves = [];
     const isProtecting = [];
 
-    for (let [colOffset, rowOffset] of this.directions) {
+    for (const [colOffset, rowOffset] of this.directions) {
       let col = curCol + colOffset;
       let row = curRow + rowOffset;
       let position = { row, col };

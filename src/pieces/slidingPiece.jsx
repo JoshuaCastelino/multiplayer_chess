@@ -1,3 +1,5 @@
+import { isInBounds } from "../utils/Engine";
+
 class SlidingPiece {
   constructor(colour, position, ctx) {
     this.colour = colour;
@@ -5,24 +7,19 @@ class SlidingPiece {
     this.ctx = ctx;
   }
 
-  isOnBoard(col, row) {
-    return col >= 0 && col < 8 && row >= 0 && row < 8;
-  }
 
-  // Function to generate legal moves for the piece
   generateLegalMoves(board) {
     const { x: currentCol, y: currentRow } = this.position;
     const directions = this.directions;
-    // The moves that the piece can take when it is its turn
     const legalMoves = [];
-    // The positions occupied by pieces of the same colour that this piece protects
     const isProtecting = [];
 
     for (const [colOffset, rowOffset] of directions) {
       let col = currentCol + colOffset;
       let row = currentRow + rowOffset;
       let pathBlocked = false;
-      let moveInBounds = this.isOnBoard(col, row);
+      const boardSize = board.length
+      let moveInBounds = isInBounds(row, col, boardSize)
 
       while (moveInBounds && !pathBlocked) {
         let position = { row, col };
@@ -40,7 +37,7 @@ class SlidingPiece {
 
         col += colOffset;
         row += rowOffset;
-        moveInBounds = this.isOnBoard(col, row);
+        moveInBounds = isInBounds(row, col, boardSize);
       }
     }
 

@@ -6,6 +6,17 @@ class Knight {
     this.position = position;
     this.ctx = ctx;
     this.firstMove = false
+    this.directions = [
+      [-2, -1], // Up-left
+      [-2, 1],  // Up-right
+      [-1, -2], // Left-up
+      [-1, 2],  // Right-up
+      [1, -2],  // Left-down
+      [1, 2],   // Right-down
+      [2, -1],  // Down-left
+      [2, 1],   // Down-right
+    ];
+    
   }
 
   draw(tileSize) {
@@ -40,32 +51,28 @@ class Knight {
   }
 
   generateLegalMoves(board) {
-    const { x: currentCol, y: currentRow } = this.position;
-    const boardSize = board.length;
+    const { x: curCol, y: curRow } = this.position;
+    const boardSize = board.length
     const legalMoves = [];
     const isProtecting = [];
-    
-    const potentialMoves = [
-      { row: currentRow - 2, col: currentCol - 1 },
-      { row: currentRow - 2, col: currentCol + 1 },
-      { row: currentRow - 1, col: currentCol - 2 },
-      { row: currentRow - 1, col: currentCol + 2 },
-      { row: currentRow + 1, col: currentCol - 2 },
-      { row: currentRow + 1, col: currentCol + 2 },
-      { row: currentRow + 2, col: currentCol - 1 },
-      { row: currentRow + 2, col: currentCol + 1 },
-    ];
 
+    for (const [colOffset, rowOffset] of this.directions) {
+      let col = curCol + colOffset;
+      let row = curRow + rowOffset;
+      let position = { row, col };
 
-    for (const move of potentialMoves) {
-      const { row, col } = move;
-      if (isInBounds(row, col, boardSize)) {
-        const occupant = board[row][col];
-        if (occupant === 0 || occupant.colour !== this.colour) {
-          legalMoves.push({ row, col });
-        } else {
-          isProtecting.push({ row, col });
-        }
+      if (!isInBounds(row, col, boardSize)) {
+        continue;
+      }
+
+      const pieceInTile = board[row][col];
+      const tileIsEmpty = pieceInTile == 0;
+      const tileOccupiedBySameColour = !tileIsEmpty && pieceInTile.colour == this.colour;
+
+      if (!tileOccupiedBySameColour || tileIsEmpty) {
+        legalMoves.push(position);
+      } else {
+        isProtecting.push(position);
       }
     }
 
