@@ -162,9 +162,9 @@ export function generateAllLegalMoves(board, king, playerTurn) {
       const legalMoves = candidateMoves.filter((move) => {
         return !isPiecePinned(king, piece, board, y, x, move.row, move.col);
       });
-      if (legalMoves.length > 0){
-        checkmated = false
-      } 
+      if (legalMoves.length > 0) {
+        checkmated = false;
+      }
       legalMovesByPosition[key] = legalMoves;
     }
   }
@@ -210,24 +210,41 @@ export function move(piece, newPosition, board, legalMoves) {
   }
 
   const newBoard = board.map((row) => [...row]);
+  const boardSize = board.length;
 
-  // 0 is a really shit way to store an empty state
-  newBoard[currentRow][currentCol] = 0;
-
+  // Handle Pawn promotion
   if (piece instanceof Pawn) {
-    const promotionAvailable = targetRow === 0 || targetRow === board.length - 1;
-    piece.firstMove = false;
-
+    const promotionAvailable = (targetRow === 0 || targetRow === boardSize - 1);
     if (promotionAvailable) {
       piece = new Queen(piece.colour, { y: targetRow, x: targetCol }, piece.context);
     }
   }
 
+  // For castling, move the rook to the correct square
+  if (piece instanceof King) {
+    if (targetCol - currentCol === 2) {
+      const rook = newBoard[currentRow][boardSize - 1];
+      newBoard[currentRow][boardSize - 1] = 0; 
+      rook.position = { x: targetCol - 1, y: currentRow };
+      newBoard[currentRow][targetCol - 1] = rook;
+    }
+    else if (targetCol - currentCol === -2) {
+      const rook = newBoard[currentRow][0];
+      newBoard[currentRow][0] = 0; 
+      rook.position = { x: targetCol + 1, y: currentRow };
+      newBoard[currentRow][targetCol + 1] = rook;
+    }
+  }
+
+  newBoard[currentRow][currentCol] = 0;
+
   piece.position = { x: targetCol, y: targetRow };
   newBoard[targetRow][targetCol] = piece;
+  piece.firstMove = false;
 
   return { newBoard, isPositionFound: true };
 }
+
 
 export function findKing(board, color) {
   for (const row of board) {
@@ -242,4 +259,3 @@ export function findKing(board, color) {
 
   return null;
 }
-
