@@ -1,10 +1,11 @@
 import { isInBounds } from "../utils/Engine";
+import Rook from "./rook";
 class King {
   constructor(colour, position, ctx) {
     this.colour = colour;
     this.position = position;
     this.ctx = ctx;
-    this.firstMove = false
+    this.firstMove = false;
     this.directions = [
       [-1, 0], // Left
       [1, 0], // Right
@@ -51,10 +52,40 @@ class King {
     this.ctx.stroke();
   }
 
+  checkCastle(board) {
+    if (!this.firstMove) return { left: null, right: null };
+
+    function walk(board, row, col, direction) {
+      const boardSize = board.length;
+      while (isInBounds(row, col, boardSize)) {
+        const curPiece = board[row][col];
+
+        if (curPiece === 0) {
+          col += direction;
+          continue;
+        }
+        if (curPiece instanceof Rook && curPiece.firstMove) {
+          return { canCastle: true, rook: curPiece };
+        }
+        break;
+      }
+      return false;
+    }
+
+    const kingRow = this.position.y;
+    const kingCol = this.position.x;
+
+    // Check towards the right (increasing x)
+    const right = walk(board, kingRow, kingCol + 1, 1);
+    // Check towards the left (decreasing x)
+    const left = walk(board, kingRow, kingCol - 1, -1);
+
+    return { left, right };
+  }
 
   generateLegalMoves(board) {
     const { x: curCol, y: curRow } = this.position;
-    const boardSize = board.length
+    const boardSize = board.length;
     const legalMoves = [];
     const isProtecting = [];
 
@@ -76,6 +107,14 @@ class King {
       } else {
         isProtecting.push(position);
       }
+    }
+
+    const { left, right } = this.checkCastle(board);
+    if (left) {
+      legalMoves.push({ row: kingRow, col: kingCol - 2 });
+    }
+    if (right){
+      legalMoves.push({ row: kingRow, col: kingCol + 2 })
     }
 
     return { legalMoves, isProtecting };
