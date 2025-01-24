@@ -133,9 +133,7 @@ export function initialise(ctx, boardSize) {
     }
   }
 
-  let { newThreatMapWhite: threatMapWhite, newThreatMapBlack: threatMapBlack } = updateThreatMaps(board, boardSize);
-
-  return { board, threatMapWhite, threatMapBlack, blackKing, whiteKing };
+  return { board, blackKing, whiteKing };
 }
 
 export function pointToCoordinate(canvasRef, e, tileSize) {
@@ -151,12 +149,11 @@ export function pointToCoordinate(canvasRef, e, tileSize) {
 }
 
 export function generateAllLegalMoves(board, king, playerTurn) {
-  const positionToLegalMoves = {};
-  let checkMate = false
+  const legalMovesByPosition = {};
 
   for (const row of board) {
     for (const piece of row) {
-      if (piece.color !== playerTurn) continue;
+      if (piece === 0 || piece.colour !== playerTurn) continue;
 
       const { x, y } = piece.position;
       const key = generateThreatMapKey(y, x);
@@ -164,16 +161,11 @@ export function generateAllLegalMoves(board, king, playerTurn) {
       const legalMoves = candidateMoves.filter((move) => {
         return !isPiecePinned(king, piece, board, y, x, move.row, move.col);
       });
-
-      if (piece instanceof King && legalMoves.length === 0){
-        checkMate = true
-      }
-
-      positionToLegalMoves[key] = legalMoves;
+      legalMovesByPosition[key] = legalMoves;
     }
   }
-
-  return positionToLegalMoves, checkmate
+  
+  return legalMovesByPosition;
 }
 
 export function move(piece, newPosition, board, legalMoves) {
