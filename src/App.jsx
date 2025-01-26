@@ -68,10 +68,10 @@ function App() {
     if (checked) {
       colourCheck(ctx, tileSize, king);
       if (checkmated) {
-        console.log(`${nextTurn} has been checmkated, L + RATIO`);
+        console.log(`${nextTurn} has been checkmated`);
       }
     } else if (stalemated) {
-      console.log(`${nextTurn} has been checmkated, L + RATIO`);
+      console.log(`${nextTurn} has been stalemated`);
     }
   }, [board]);
 
