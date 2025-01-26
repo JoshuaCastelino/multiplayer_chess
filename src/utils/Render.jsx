@@ -63,7 +63,7 @@ export function redrawBoard(canvas, board, boardSize, tileSize) {
   for (let row of board) {
     for (let piece of row) {
       if (piece !== 0) {
-        piece.draw(tileSize, offset);
+        drawPiece(piece, tileSize, offset);
       }
     }
   }
@@ -122,4 +122,16 @@ export function loadImage(src) {
     img.onerror = reject;
     img.src = src;
   });
+}
+
+export async function drawPiece(piece, tileSize, offset = 0) {
+  const img = await piece.imagePromise;
+  const { x, y } = piece.position;
+  // Calculate the center of the tile
+  const centerX = offset + x * tileSize + tileSize / 2;
+  const centerY = offset + y * tileSize + tileSize / 2;
+  // Scale the piece to e.g. 80% of tile size
+  const pieceSize = tileSize * 0.8;
+  // Draw image at the correct position
+  piece.ctx.drawImage(img, centerX - pieceSize / 2, centerY - pieceSize / 2, pieceSize, pieceSize);
 }

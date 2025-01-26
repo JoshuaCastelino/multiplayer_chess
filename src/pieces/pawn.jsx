@@ -13,25 +13,13 @@ class Pawn {
     this.imagePromise = loadImage(src);
   }
 
-  async draw(tileSize, offset = 0) {
-    const img = await this.imagePromise;
-    const { x, y } = this.position;
-    // Calculate the center of the tile
-    const centerX = offset + x * tileSize + tileSize / 2;
-    const centerY = offset + y * tileSize + tileSize / 2;
-    // Scale the piece to e.g. 80% of tile size
-    const pieceSize = tileSize * 0.8;
-    // Draw image at the correct position
-    this.ctx.drawImage(img, centerX - pieceSize / 2, centerY - pieceSize / 2, pieceSize, pieceSize);
-  }
-
   generateLegalMoves(board) {
     const { x: curCol, y: curRow } = this.position;
     const direction = this.colour === "white" ? -1 : 1;
     const legalMoves = [];
     const isProtecting = [];
     const oneStepRow = curRow + direction;
-    const oneStepInBounds = this.isOnBoard(oneStepRow, curCol);
+    const oneStepInBounds = isInBounds(oneStepRow, curCol);
     const oneStepTileIsEmpty = board[oneStepRow][curCol] === 0;
     const boardSize = 8;
 
@@ -62,10 +50,6 @@ class Pawn {
     });
 
     return { legalMoves, isProtecting };
-  }
-
-  isOnBoard(row, col) {
-    return row >= 0 && row < 8 && col >= 0 && col < 8;
   }
 }
 
