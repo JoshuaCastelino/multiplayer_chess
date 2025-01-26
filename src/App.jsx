@@ -8,7 +8,7 @@ import {
   generateAllLegalMoves,
   generateThreatMapKey,
 } from "./utils/Engine";
-import { redrawBoard, pointToCoordinate, drawLegalMoves } from "./utils/Render";
+import { redrawBoard, pointToCoordinate, drawLegalMoves, colourCheck } from "./utils/Render";
 import King from "./pieces/king";
 
 function App() {
@@ -52,18 +52,27 @@ function App() {
     const ctx = canvas.getContext("2d");
     const nextTurn = playerTurn == "white" ? "black" : "white";
     const king = kings[nextTurn];
-    const { newThreatMapWhite, newThreatMapBlack } = updateThreatMaps(board, boardSize, king);
-    const { legalMovesByPosition, checkmated } = generateAllLegalMoves(board, king, nextTurn);
-
-    if (checkmated) {
-      console.log(`${nextTurn} has been checmkated, L + RATIO`);
-    }
+    // const { newThreatMapWhite, newThreatMapBlack } = updateThreatMaps(board, boardSize, king);
+    const { legalMovesByPosition, checkmated, checked, stalemated } = generateAllLegalMoves(
+      board,
+      king,
+      nextTurn
+    );
 
     redrawBoard(canvas, board, boardSize, tileSize);
     // colourThreatMap(ctx, tileSize, newThreatMapWhite, red);
     // colourThreatMap(ctx, tileSize, newThreatMapBlack, blue);
     setPlayerTurn(nextTurn);
     setAllLegalMoves(legalMovesByPosition);
+
+    if (checked) {
+      colourCheck(ctx, tileSize, king);
+      if (checkmated) {
+        console.log(`${nextTurn} has been checmkated, L + RATIO`);
+      }
+    } else if (stalemated) {
+      console.log(`${nextTurn} has been checmkated, L + RATIO`);
+    }
   }, [board]);
 
   const selectPiece = (e, tileSize, board) => {
@@ -91,18 +100,18 @@ function App() {
   };
 
   return (
-    <div
-      onMouseDown={(event) => selectPiece(event, tileSize, board)}
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignContent: "center",
-      }}
-    >
+    <div style={{ background: "red" }}>
       <canvas
+        style={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+        }}
         ref={canvasRef}
         width={tileSize * boardSize}
         height={tileSize * boardSize}
+        onMouseDown={(event) => selectPiece(event, tileSize, board)}
       ></canvas>
     </div>
   );

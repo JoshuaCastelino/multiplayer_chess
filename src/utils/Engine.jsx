@@ -141,8 +141,8 @@ export function initialise(ctx, boardSize) {
 
 export function generateAllLegalMoves(board, king, playerTurn) {
   const legalMovesByPosition = {};
-  let checkmated = true;
-
+  let stalemated = true;
+  let checked = isKingInCheck(king, board);
   for (const row of board) {
     for (const piece of row) {
       if (piece === 0 || piece.colour !== playerTurn) continue;
@@ -153,14 +153,17 @@ export function generateAllLegalMoves(board, king, playerTurn) {
       const legalMoves = candidateMoves.filter((move) => {
         return !isPiecePinned(king, piece, board, y, x, move.row, move.col);
       });
+      // King needs to have no moves and also be in check
       if (legalMoves.length > 0) {
-        checkmated = false;
+        stalemated = false;
       }
       legalMovesByPosition[key] = legalMoves;
     }
   }
 
-  return { legalMovesByPosition, checkmated };
+  const checkmated = checked && stalemated;
+
+  return { legalMovesByPosition, checkmated, checked, stalemated };
 }
 
 export function isPiecePinned(king, curPiece, board, curRow, curCol, newRow, newCol) {

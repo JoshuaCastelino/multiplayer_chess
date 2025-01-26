@@ -83,10 +83,12 @@ export function colourThreatMap(ctx, tileSize, threatMap, colour) {
   });
 }
 
-export function colourCheck(ctx, tileSize, row, col) {
+export function colourCheck(ctx, tileSize, king) {
+  const row = king.position.y;
+  const col = king.position.x;
   const green = "rgba(0, 255, 0, 0.5)";
-  const x = col * tileSize;
-  const y = row * tileSize;
+  const x = offset + col * tileSize;
+  const y = offset + row * tileSize;
   ctx.fillStyle = green;
   ctx.fillRect(x, y, tileSize, tileSize);
 }
