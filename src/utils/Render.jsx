@@ -1,5 +1,10 @@
+/*
+Contains rendering related functionality, e.g. drawing the board, or converting 
+a click into a coordinate on the board
+*/
+
 const offset = 20;
-const cornerRadius = 20; 
+const cornerRadius = 20;
 
 export function drawRoundedRect(ctx, x, y, width, height, radius) {
   ctx.beginPath();
@@ -25,9 +30,8 @@ export function redrawBoard(canvas, board, boardSize, tileSize) {
 
   drawRoundedRect(ctx, 0, 0, canvas.width, canvas.height, cornerRadius);
 
-  ctx.fillStyle = "#5C4033"; 
+  ctx.fillStyle = "#5C4033";
   ctx.fill();
-
 
   for (let row = 0; row < boardSize; row++) {
     for (let col = 0; col < boardSize; col++) {
@@ -65,8 +69,6 @@ export function redrawBoard(canvas, board, boardSize, tileSize) {
   }
 }
 
-
-
 export function colourThreatMap(ctx, tileSize, threatMap, colour) {
   Object.keys(threatMap).forEach((key) => {
     const threats = threatMap[key];
@@ -98,7 +100,6 @@ export function drawLegalMoves(legalMoves, tileSize, ctx, red) {
     ctx.fillRect(x, y, tileSize, tileSize);
   });
 }
-
 
 export function pointToCoordinate(canvasRef, e, tileSize) {
   const canvas = canvasRef.current;

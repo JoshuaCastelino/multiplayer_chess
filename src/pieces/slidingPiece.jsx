@@ -1,3 +1,8 @@
+/*
+Parent class which the Bishop, Queen and Rook inherit from. 
+Previously the king also inherited from this class, however, this led to too much abstraction.
+*/
+
 import { isInBounds } from "../utils/Engine";
 
 class SlidingPiece {
@@ -5,9 +10,8 @@ class SlidingPiece {
     this.colour = colour;
     this.position = position;
     this.ctx = ctx;
-    this.firstMove = true
+    this.firstMove = true;
   }
-
 
   generateLegalMoves(board) {
     const { x: currentCol, y: currentRow } = this.position;
@@ -19,8 +23,8 @@ class SlidingPiece {
       let col = currentCol + colOffset;
       let row = currentRow + rowOffset;
       let pathBlocked = false;
-      const boardSize = board.length
-      let moveInBounds = isInBounds(row, col, boardSize)
+      const boardSize = board.length;
+      let moveInBounds = isInBounds(row, col, boardSize);
 
       while (moveInBounds && !pathBlocked) {
         let position = { row, col };

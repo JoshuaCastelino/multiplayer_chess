@@ -1,3 +1,8 @@
+/*
+Contains functionality surrounding intiialising the game, moving pieces, 
+as well as utility functions that are required to compute legal moves
+*/
+
 import Pawn from "../pieces/pawn";
 import Rook from "../pieces/rook";
 import Bishop from "../pieces/bishop";
@@ -13,8 +18,6 @@ function addThreats(legalMoves, colourThreatMap, piece) {
   }
 }
 
-// This function appears in different places with the exact same functionality,
-// Look into centralising defintion
 export function isInBounds(row, col, boardSize) {
   return row >= 0 && col >= 0 && row < boardSize && col < boardSize;
 }
@@ -203,7 +206,7 @@ export function move(piece, newPosition, board, legalMoves) {
 
   // Handle Pawn promotion
   if (piece instanceof Pawn) {
-    const promotionAvailable = (targetRow === 0 || targetRow === boardSize - 1);
+    const promotionAvailable = targetRow === 0 || targetRow === boardSize - 1;
     if (promotionAvailable) {
       piece = new Queen(piece.colour, { y: targetRow, x: targetCol }, piece.context);
     }
@@ -213,13 +216,12 @@ export function move(piece, newPosition, board, legalMoves) {
   if (piece instanceof King) {
     if (targetCol - currentCol === 2) {
       const rook = newBoard[currentRow][boardSize - 1];
-      newBoard[currentRow][boardSize - 1] = 0; 
+      newBoard[currentRow][boardSize - 1] = 0;
       rook.position = { x: targetCol - 1, y: currentRow };
       newBoard[currentRow][targetCol - 1] = rook;
-    }
-    else if (targetCol - currentCol === -2) {
+    } else if (targetCol - currentCol === -2) {
       const rook = newBoard[currentRow][0];
-      newBoard[currentRow][0] = 0; 
+      newBoard[currentRow][0] = 0;
       rook.position = { x: targetCol + 1, y: currentRow };
       newBoard[currentRow][targetCol + 1] = rook;
     }
@@ -233,7 +235,6 @@ export function move(piece, newPosition, board, legalMoves) {
 
   return { newBoard, isPositionFound: true };
 }
-
 
 export function findKing(board, color) {
   for (const row of board) {
