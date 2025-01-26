@@ -1,35 +1,28 @@
-import { isInBounds, isPiecePinned } from "../utils/Engine";
-import Queen from "./queen";
+import { isInBounds } from "../utils/Engine";
+import { loadImage } from "../utils/Render";
+import blackPawnSVG from "../assets/black_pawn.svg";
+import whitePawnSVG from "../assets/white_pawn.svg";
 
 class Pawn {
-  constructor(colour, position, context) {
+  constructor(colour, position, ctx) {
     this.colour = colour; // 'white' or 'black'
     this.position = position;
-    this.context = context;
+    this.ctx = ctx;
     this.firstMove = true;
+    const src = colour === "white" ? whitePawnSVG : blackPawnSVG;
+    this.imagePromise = loadImage(src);
   }
 
-  draw(tileSize, offset = 0) {
+  async draw(tileSize, offset = 0) {
+    const img = await this.imagePromise;
     const { x, y } = this.position;
-
-    const radius = 20;
-
-    // Calculate pixel position based on board tile size
-    const pixelX = offset + x * tileSize + tileSize / 2;
-    const pixelY = offset + y * tileSize + tileSize / 2;
-
-    // Draw a circle representing the pawn
-    this.context.beginPath();
-    this.context.arc(pixelX, pixelY, radius, 0, Math.PI * 2);
-    this.context.fillStyle = this.colour === "white" ? "#FFFFFF" : "#000000";
-    this.context.fill();
-
-    // Draw the outline
-    this.context.lineWidth = 2;
-    this.context.strokeStyle = this.colour === "white" ? "#000000" : "#FFFFFF";
-    this.context.stroke();
-
-    this.context.closePath();
+    // Calculate the center of the tile
+    const centerX = offset + x * tileSize + tileSize / 2;
+    const centerY = offset + y * tileSize + tileSize / 2;
+    // Scale the piece to e.g. 80% of tile size
+    const pieceSize = tileSize * 0.8;
+    // Draw image at the correct position
+    this.ctx.drawImage(img, centerX - pieceSize / 2, centerY - pieceSize / 2, pieceSize, pieceSize);
   }
 
   generateLegalMoves(board) {
@@ -40,7 +33,7 @@ class Pawn {
     const oneStepRow = curRow + direction;
     const oneStepInBounds = this.isOnBoard(oneStepRow, curCol);
     const oneStepTileIsEmpty = board[oneStepRow][curCol] === 0;
-    const boardSize = 8
+    const boardSize = 8;
 
     if (oneStepInBounds && oneStepTileIsEmpty) {
       legalMoves.push({ row: oneStepRow, col: curCol });

@@ -1,5 +1,9 @@
 import { isInBounds } from "../utils/Engine";
+import { loadImage } from "../utils/Render";
+import blackKingSVG from "../assets/black_king.svg";
+import whiteKingSVG from "../assets/white_king.svg";
 import Rook from "./rook";
+
 class King {
   constructor(colour, position, ctx) {
     this.colour = colour;
@@ -16,40 +20,21 @@ class King {
       [1, -1], // Bottom-left
       [1, 1], // Bottom-right
     ];
+
+    const src = colour === "white" ? whiteKingSVG : blackKingSVG;
+    this.imagePromise = loadImage(src);
   }
 
-  draw(tileSize, offset = 0) {
+  async draw(tileSize, offset = 0) {
+    const img = await this.imagePromise;
     const { x, y } = this.position;
-
     // Calculate the center of the tile
     const centerX = offset + x * tileSize + tileSize / 2;
     const centerY = offset + y * tileSize + tileSize / 2;
-
-    // Adjust size for the diamond
-    const halfSize = 22.5;
-
-    // Calculate the diamond points
-    const points = [
-      { x: centerX, y: centerY - halfSize }, // Top
-      { x: centerX + halfSize, y: centerY }, // Right
-      { x: centerX, y: centerY + halfSize }, // Bottom
-      { x: centerX - halfSize, y: centerY }, // Left
-    ];
-
-    // Draw the diamond
-    this.ctx.fillStyle = this.colour;
-    this.ctx.beginPath();
-    this.ctx.moveTo(points[0].x, points[0].y); // Start at the top
-    for (let i = 1; i < points.length; i++) {
-      this.ctx.lineTo(points[i].x, points[i].y); // Connect to the next point
-    }
-    this.ctx.closePath();
-    this.ctx.fill();
-
-    // Add a border
-    this.ctx.strokeStyle = this.colour === "white" ? "#000000" : "#FFFFFF";
-    this.ctx.lineWidth = 2;
-    this.ctx.stroke();
+    // Scale the piece to e.g. 80% of tile size
+    const pieceSize = tileSize * 0.8;
+    // Draw image at the correct position
+    this.ctx.drawImage(img, centerX - pieceSize / 2, centerY - pieceSize / 2, pieceSize, pieceSize);
   }
 
   checkCastle(board, kingRow, kingCol) {
@@ -112,8 +97,8 @@ class King {
     if (left) {
       legalMoves.push({ row: kingRow, col: kingCol - 2 });
     }
-    if (right){
-      legalMoves.push({ row: kingRow, col: kingCol + 2 })
+    if (right) {
+      legalMoves.push({ row: kingRow, col: kingCol + 2 });
     }
     return { legalMoves, isProtecting };
   }

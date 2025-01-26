@@ -13,6 +13,18 @@ class SlidingPiece {
     this.firstMove = true;
   }
 
+  async draw(tileSize, offset = 0) {
+    const img = await this.imagePromise;
+    const { x, y } = this.position;
+    // Calculate the center of the tile
+    const centerX = offset + x * tileSize + tileSize / 2;
+    const centerY = offset + y * tileSize + tileSize / 2;
+    // Scale the piece to e.g. 80% of tile size
+    const pieceSize = tileSize * 0.8;
+    // Draw image at the correct position
+    this.ctx.drawImage(img, centerX - pieceSize / 2, centerY - pieceSize / 2, pieceSize, pieceSize);
+  }
+
   generateLegalMoves(board) {
     const { x: currentCol, y: currentRow } = this.position;
     const directions = this.directions;

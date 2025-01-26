@@ -13,7 +13,7 @@ import King from "./pieces/king";
 
 function App() {
   const canvasRef = useRef(null);
-  const tileSize = 70;
+  const tileSize = 80;
   const boardSize = 8;
   const red = "rgba(255, 0, 0, 0.5)";
   const blue = "rgba(0, 50, 255, 0.5)";
