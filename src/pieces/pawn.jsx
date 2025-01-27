@@ -15,13 +15,13 @@ class Pawn {
 
   generateLegalMoves(board) {
     const { x: curCol, y: curRow } = this.position;
+    const boardSize = 8
     const direction = this.colour === "white" ? -1 : 1;
     const legalMoves = [];
     const isProtecting = [];
     const oneStepRow = curRow + direction;
-    const oneStepInBounds = isInBounds(oneStepRow, curCol);
+    const oneStepInBounds = isInBounds(oneStepRow, curCol, boardSize);
     const oneStepTileIsEmpty = board[oneStepRow][curCol] === 0;
-    const boardSize = 8;
 
     if (oneStepInBounds && oneStepTileIsEmpty) {
       legalMoves.push({ row: oneStepRow, col: curCol });
