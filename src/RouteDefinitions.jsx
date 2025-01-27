@@ -7,7 +7,10 @@ function RouteDefinitions() {
     return (
         <Routes>
             <Route path="/" element={<ModeSelection />} /> 
-            <Route path="/app" element={<App />} />       
+            <Route path="/singlePlayer" element={<App preventFlipping={false}/>} />   
+            <Route path="/multiPlayer" element={<App preventFlipping={false}/>} />       
+            <Route path="/passAndPlay" element={<App preventFlipping={true}/>} />       
+    
         </Routes>
     );
 }
