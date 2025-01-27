@@ -49,6 +49,9 @@ function LobbyPage() {
             pattern="[A-Z0-9]+"
             className="bg-gray-700 text-white font-bold py-4 px-8 rounded-lg shadow-md focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50 text-center placeholder-gray-400 w-full border border-gray-600 transition-all duration-200"
             required
+            onInput={(e) => {
+              e.target.value = e.target.value.toUpperCase(); 
+            }}
           />
 
           <button
