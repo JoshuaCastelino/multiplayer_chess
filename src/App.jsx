@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import whiteQueen from "./assets/white_queen.svg";
 
-
 import {
   updateThreatMaps,
   initialise,
@@ -20,7 +19,7 @@ import {
 } from "./utils/Render";
 import King from "./pieces/king";
 
-function App({ preventFlipping }) {
+function App({ preventFlipping, debug }) {
   const canvasRef = useRef(null);
   const tileSize = 80;
   const boardSize = 8;
@@ -62,16 +61,18 @@ function App({ preventFlipping }) {
     const ctx = canvas.getContext("2d");
     const nextTurn = playerTurn == "white" ? "black" : "white";
     const king = kings[nextTurn];
-    // const { newThreatMapWhite, newThreatMapBlack } = updateThreatMaps(board, boardSize, king);
     const { legalMovesByPosition, checkmated, checked, stalemated } = generateAllLegalMoves(
       board,
       king,
       nextTurn
     );
     const isFlipped = nextTurn === "black" && preventFlipping;
-    redrawBoard(canvas, board, boardSize, tileSize, isFlipped);
-    // colourThreatMap(ctx, tileSize, newThreatMapWhite, red, boardSize, isFlipped);
-    // colourThreatMap(ctx, tileSize, newThreatMapBlack, blue, boardSize, isFlipped);
+    if (debug) {
+      redrawBoard(canvas, board, boardSize, tileSize, isFlipped);
+      const { newThreatMapWhite, newThreatMapBlack } = updateThreatMaps(board, boardSize, king);
+      colourThreatMap(ctx, tileSize, newThreatMapWhite, red, boardSize, isFlipped);
+      colourThreatMap(ctx, tileSize, newThreatMapBlack, blue, boardSize, isFlipped);
+    }
     setPlayerTurn(nextTurn);
     setAllLegalMoves(legalMovesByPosition);
 
@@ -86,7 +87,7 @@ function App({ preventFlipping }) {
   }, [board]);
 
   const selectPiece = (e, tileSize, board) => {
-    const isFlipped = playerTurn === "black" && preventFlipping; 
+    const isFlipped = playerTurn === "black" && preventFlipping;
     const { row, col } = pointToCoordinate(canvasRef, e, tileSize, isFlipped);
     if (!isInBounds(row, col, boardSize)) return;
 
@@ -115,8 +116,8 @@ function App({ preventFlipping }) {
     <div className="bg-gray-900 text-white h-screen flex flex-col items-center justify-center">
       <button
         className="flex items-center justify-center space-x-4 mb-12 bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 rounded-lg shadow-md transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-gray-600 focus:ring-opacity-50"
-        style={{ width: tileSize * boardSize + 40}} 
-        onClick={() => navigate("/")} 
+        style={{ width: tileSize * boardSize + 40 }}
+        onClick={() => navigate("/")}
       >
         <img src={whiteQueen} alt="White Queen" className="w-12 h-12" />
         <h1 className="text-4xl font-bold">NotChess.com</h1>
