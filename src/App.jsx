@@ -67,8 +67,9 @@ function App({ preventFlipping, debug }) {
       nextTurn
     );
     const isFlipped = nextTurn === "black" && preventFlipping;
+    redrawBoard(canvas, board, boardSize, tileSize, isFlipped);
+
     if (debug) {
-      redrawBoard(canvas, board, boardSize, tileSize, isFlipped);
       const { newThreatMapWhite, newThreatMapBlack } = updateThreatMaps(board, boardSize, king);
       colourThreatMap(ctx, tileSize, newThreatMapWhite, red, boardSize, isFlipped);
       colourThreatMap(ctx, tileSize, newThreatMapBlack, blue, boardSize, isFlipped);
