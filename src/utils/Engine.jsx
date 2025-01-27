@@ -139,13 +139,13 @@ export function initialise(ctx, boardSize) {
   return { board, blackKing, whiteKing };
 }
 
-export function generateAllLegalMoves(board, king, playerTurn) {
-  const legalMovesByPosition = {};
+export function generateAllLegalMoves(board, king) {
+  const movesByPosition = {};
   let stalemated = true;
   let checked = isKingInCheck(king, board);
   for (const row of board) {
     for (const piece of row) {
-      if (piece === 0 || piece.colour !== playerTurn) continue;
+      if (piece === 0 || piece.colour === king.color) continue;
 
       const { x, y } = piece.position;
       const key = generateThreatMapKey(y, x);
@@ -157,13 +157,13 @@ export function generateAllLegalMoves(board, king, playerTurn) {
       if (legalMoves.length > 0) {
         stalemated = false;
       }
-      legalMovesByPosition[key] = legalMoves;
+      movesByPosition[key] = legalMoves;
     }
   }
 
   const checkmated = checked && stalemated;
 
-  return { legalMovesByPosition, checkmated, checked, stalemated };
+  return { movesByPosition, checkmated, checked, stalemated };
 }
 
 export function isPiecePinned(king, curPiece, board, curRow, curCol, newRow, newCol) {

@@ -60,19 +60,12 @@ function App({ preventFlipping, debug }) {
     const ctx = canvas.getContext("2d");
     const nextTurn = playerTurn == "white" ? "black" : "white";
     const king = kings[nextTurn];
-    const { legalMovesByPosition, checkmated, checked, stalemated } = generateAllLegalMoves(
-      board,
-      king,
-      nextTurn
-    );
+    const { movesByPosition, checkmated, checked, stalemated } = generateAllLegalMoves(board, king);
     const isFlipped = nextTurn === "black" && preventFlipping;
     redrawBoard(canvas, board, boardSize, tileSize, isFlipped);
-
     if (debug) renderThreatMaps(board, boardSize, king, ctx, tileSize, red, isFlipped, blue);
-
     setPlayerTurn(nextTurn);
-    setAllLegalMoves(legalMovesByPosition);
-
+    setAllLegalMoves(movesByPosition);
     if (checked) {
       colourCheck(ctx, tileSize, king, boardSize, isFlipped);
       if (checkmated) {
