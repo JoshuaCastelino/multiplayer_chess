@@ -3,6 +3,8 @@ Contains rendering related functionality, e.g. drawing the board, or converting
 a click into a coordinate on the board
 */
 
+import { updateThreatMaps } from "./Engine";
+
 const offset = 20;
 const cornerRadius = 20;
 const boardSize = 8;
@@ -72,7 +74,6 @@ export function redrawBoard(canvas, board, boardSize, tileSize, isFlipped) {
     }
   }
 }
-
 
 export function colourThreatMap(ctx, tileSize, threatMap, colour, boardSize, isFlipped) {
   Object.keys(threatMap).forEach((key) => {
@@ -169,4 +170,10 @@ export async function drawPiece(piece, tileSize, offset = 0, isFlipped = false) 
   const pieceSize = tileSize * 0.8;
   // Draw image at the correct position
   piece.ctx.drawImage(img, centerX - pieceSize / 2, centerY - pieceSize / 2, pieceSize, pieceSize);
+}
+
+export function renderThreatMaps(board, boardSize, king, ctx, tileSize, red, isFlipped, blue) {
+  const { newThreatMapWhite, newThreatMapBlack } = updateThreatMaps(board, boardSize, king);
+  colourThreatMap(ctx, tileSize, newThreatMapWhite, red, boardSize, isFlipped);
+  colourThreatMap(ctx, tileSize, newThreatMapBlack, blue, boardSize, isFlipped);
 }

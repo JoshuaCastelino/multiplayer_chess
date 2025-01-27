@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import whiteQueen from "./assets/white_queen.svg";
 
 import {
-  updateThreatMaps,
   initialise,
   isInBounds,
   move,
@@ -11,7 +10,7 @@ import {
   generateThreatMapKey,
 } from "./utils/Engine";
 import {
-  colourThreatMap,
+  renderThreatMaps,
   redrawBoard,
   pointToCoordinate,
   drawLegalMoves,
@@ -69,11 +68,8 @@ function App({ preventFlipping, debug }) {
     const isFlipped = nextTurn === "black" && preventFlipping;
     redrawBoard(canvas, board, boardSize, tileSize, isFlipped);
 
-    if (debug) {
-      const { newThreatMapWhite, newThreatMapBlack } = updateThreatMaps(board, boardSize, king);
-      colourThreatMap(ctx, tileSize, newThreatMapWhite, red, boardSize, isFlipped);
-      colourThreatMap(ctx, tileSize, newThreatMapBlack, blue, boardSize, isFlipped);
-    }
+    if (debug) renderThreatMaps(board, boardSize, king, ctx, tileSize, red, isFlipped, blue);
+
     setPlayerTurn(nextTurn);
     setAllLegalMoves(legalMovesByPosition);
 
