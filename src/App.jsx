@@ -109,7 +109,7 @@ function App() {
   };
 
   return (
-    <div style={{ background: "red" }}>
+    <div>
       <canvas
         style={{
           position: "absolute",
