@@ -195,7 +195,7 @@ export function isKingInCheck(king, board) {
   return false;
 }
 
-export function move(piece, newPosition, board, legalMoves) {
+export function move(ctx, piece, newPosition, board, legalMoves) {
   // Cheeky bit of polymorphism
   const { col: targetCol, row: targetRow } = newPosition;
   const { x: currentCol, y: currentRow } = piece.position;
@@ -211,7 +211,7 @@ export function move(piece, newPosition, board, legalMoves) {
   if (piece instanceof Pawn) {
     const promotionAvailable = targetRow === 0 || targetRow === boardSize - 1;
     if (promotionAvailable) {
-      piece = new Queen(piece.colour, { y: targetRow, x: targetCol }, piece.context);
+      piece = new Queen(piece.colour, { y: targetRow, x: targetCol }, ctx);
     }
   }
 

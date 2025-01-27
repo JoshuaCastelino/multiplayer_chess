@@ -8,7 +8,13 @@ import {
   generateAllLegalMoves,
   generateThreatMapKey,
 } from "./utils/Engine";
-import { redrawBoard, pointToCoordinate, drawLegalMoves, colourCheck } from "./utils/Render";
+import {
+  colourThreatMap,
+  redrawBoard,
+  pointToCoordinate,
+  drawLegalMoves,
+  colourCheck,
+} from "./utils/Render";
 import King from "./pieces/king";
 
 function App() {
@@ -17,6 +23,7 @@ function App() {
   const boardSize = 8;
   const red = "rgba(255, 0, 0, 0.5)";
   const blue = "rgba(0, 50, 255, 0.5)";
+  const preventFlipping = false;
 
   const [board, setBoard] = useState([]);
   const [selectedPiece, setSelectedPiece] = useState(undefined);
@@ -58,15 +65,15 @@ function App() {
       king,
       nextTurn
     );
-
-    redrawBoard(canvas, board, boardSize, tileSize);
-    // colourThreatMap(ctx, tileSize, newThreatMapWhite, red);
-    // colourThreatMap(ctx, tileSize, newThreatMapBlack, blue);
+    const isFlipped = nextTurn === "black" && preventFlipping;
+    redrawBoard(canvas, board, boardSize, tileSize, isFlipped);
+    // colourThreatMap(ctx, tileSize, newThreatMapWhite, red, boardSize, isFlipped);
+    // colourThreatMap(ctx, tileSize, newThreatMapBlack, blue, boardSize, isFlipped);
     setPlayerTurn(nextTurn);
     setAllLegalMoves(legalMovesByPosition);
 
     if (checked) {
-      colourCheck(ctx, tileSize, king);
+      colourCheck(ctx, tileSize, king, boardSize, isFlipped);
       if (checkmated) {
         console.log(`${nextTurn} has been checkmated`);
       }
@@ -76,23 +83,25 @@ function App() {
   }, [board]);
 
   const selectPiece = (e, tileSize, board) => {
-    const { row, col } = pointToCoordinate(canvasRef, e, tileSize);
+    const isFlipped = playerTurn === "black" && preventFlipping; 
+    const { row, col } = pointToCoordinate(canvasRef, e, tileSize, isFlipped);
     if (!isInBounds(row, col, boardSize)) return;
+
     const positionKey = generateThreatMapKey(row, col);
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     const piece = board[row][col];
     const pieceColour = piece.colour;
     const isOwnPiece = pieceColour === playerTurn;
+
     if (isOwnPiece) {
       const legalMoves = allLegalMoves[positionKey];
       setSelectedPiece(piece);
       setLegalMoves(allLegalMoves[positionKey]);
-      setLegalMoves(legalMoves);
-      redrawBoard(canvas, board, boardSize, tileSize);
-      drawLegalMoves(legalMoves, tileSize, ctx, red);
+      redrawBoard(canvas, board, boardSize, tileSize, isFlipped);
+      drawLegalMoves(legalMoves, tileSize, ctx, red, boardSize, isFlipped);
     } else if (selectedPiece) {
-      let { newBoard, isPositionFound } = move(selectedPiece, { col, row }, board, legalMoves);
+      let { newBoard, isPositionFound } = move(ctx, selectedPiece, { col, row }, board, legalMoves);
       if (isPositionFound) {
         setBoard(newBoard);
       }
