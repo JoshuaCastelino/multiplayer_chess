@@ -1,4 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import whiteQueen from "./assets/white_queen.svg";
+
 
 import {
   updateThreatMaps,
@@ -30,6 +33,7 @@ function App({ preventFlipping }) {
   const [legalMoves, setLegalMoves] = useState([]);
   const [kings, setKings] = useState({ white: null, black: null });
   const [allLegalMoves, setAllLegalMoves] = useState(null);
+  const navigate = useNavigate();
 
   // Called at first render
   useEffect(() => {
@@ -108,19 +112,25 @@ function App({ preventFlipping }) {
   };
 
   return (
-    <div>
-      <canvas
-        style={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-        }}
-        ref={canvasRef}
-        width={tileSize * boardSize}
-        height={tileSize * boardSize}
-        onMouseDown={(event) => selectPiece(event, tileSize, board)}
-      ></canvas>
+    <div className="bg-gray-900 text-white h-screen flex flex-col items-center justify-center">
+      <button
+        className="flex items-center justify-center space-x-4 mb-12 bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 rounded-lg shadow-md transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-gray-600 focus:ring-opacity-50"
+        style={{ width: tileSize * boardSize + 40}} 
+        onClick={() => navigate("/")} 
+      >
+        <img src={whiteQueen} alt="White Queen" className="w-12 h-12" />
+        <h1 className="text-4xl font-bold">NotChess.com</h1>
+      </button>
+
+      <div className="bg-gray-900">
+        <canvas
+          className="bg-transparent"
+          ref={canvasRef}
+          width={tileSize * boardSize}
+          height={tileSize * boardSize}
+          onMouseDown={(event) => selectPiece(event, tileSize, board)}
+        ></canvas>
+      </div>
     </div>
   );
 }
