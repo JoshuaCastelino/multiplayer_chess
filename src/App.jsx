@@ -32,14 +32,13 @@ function App({ preventFlipping, debug }) {
   const [kings, setKings] = useState({ white: null, black: null });
   const [allLegalMoves, setAllLegalMoves] = useState(null);
   const navigate = useNavigate();
+  const gameCode = new URLSearchParams(location.search).get("code");
 
-  // Called at first render
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     const { board, blackKing, whiteKing } = initialise(ctx, boardSize);
     setBoard(board);
-    // In an ideal world I would use an enum for player turn, causing me so much pain to keep using strings
     setKings({ white: whiteKing, black: blackKing });
   }, []);
 
@@ -68,6 +67,7 @@ function App({ preventFlipping, debug }) {
     setAllLegalMoves(movesByPosition);
     if (checked) {
       colourCheck(ctx, tileSize, king, boardSize, isFlipped);
+      console.log(`Check true but checkamted ${checkmated}`)
       if (checkmated) {
         console.log(`${nextTurn} has been checkmated`);
       }
@@ -122,6 +122,12 @@ function App({ preventFlipping, debug }) {
           onMouseDown={(event) => selectPiece(event, tileSize, board)}
         ></canvas>
       </div>
+
+      {gameCode && (
+        <div className="mt-4 text-lg font-semibold">
+          Game Code: <span className="text-blue-400">{gameCode}</span>
+        </div>
+      )}
     </div>
   );
 }
