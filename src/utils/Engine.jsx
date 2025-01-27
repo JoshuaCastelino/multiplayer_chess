@@ -145,7 +145,7 @@ export function generateAllLegalMoves(board, king) {
   let checked = isKingInCheck(king, board);
   for (const row of board) {
     for (const piece of row) {
-      if (piece === 0 || piece.colour === king.color) continue;
+      if (piece === 0 || piece.colour !== king.colour) continue;
 
       const { x, y } = piece.position;
       const key = generateThreatMapKey(y, x);
