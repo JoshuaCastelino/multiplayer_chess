@@ -18,8 +18,9 @@ import {
 } from "./utils/Render";
 import King from "./pieces/king";
 
-function App({ preventFlipping, debug }) {
+function App({ preventFlipping }) {
   const canvasRef = useRef(null);
+  const navigate = useNavigate();
   const tileSize = 80;
   const boardSize = 8;
   const red = "rgba(255, 0, 0, 0.5)";
@@ -31,7 +32,7 @@ function App({ preventFlipping, debug }) {
   const [legalMoves, setLegalMoves] = useState([]);
   const [kings, setKings] = useState({ white: null, black: null });
   const [allLegalMoves, setAllLegalMoves] = useState(null);
-  const navigate = useNavigate();
+  const [colourThreats, setColourThreats] = useState(false);
   const gameCode = new URLSearchParams(location.search).get("code");
 
   useEffect(() => {
@@ -62,12 +63,12 @@ function App({ preventFlipping, debug }) {
     const { movesByPosition, checkmated, checked, stalemated } = generateAllLegalMoves(board, king);
     const isFlipped = nextTurn === "black" && preventFlipping;
     redrawBoard(canvas, board, boardSize, tileSize, isFlipped);
-    if (debug) renderThreatMaps(board, boardSize, king, ctx, tileSize, red, isFlipped, blue);
+    if (colourThreats) renderThreatMaps(board, boardSize, king, ctx, tileSize, red, isFlipped, blue);
     setPlayerTurn(nextTurn);
     setAllLegalMoves(movesByPosition);
     if (checked) {
       colourCheck(ctx, tileSize, king, boardSize, isFlipped);
-      console.log(`Check true but checkamted ${checkmated}`)
+      console.log(`Check true but checkmated ${checkmated}`);
       if (checkmated) {
         console.log(`${nextTurn} has been checkmated`);
       }
@@ -75,6 +76,15 @@ function App({ preventFlipping, debug }) {
       console.log(`${nextTurn} has been stalemated`);
     }
   }, [board]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    const nextTurn = playerTurn == "white" ? "black" : "white";
+    const king = kings[nextTurn];
+    const isFlipped = nextTurn === "black" && preventFlipping;
+    if (colourThreats) renderThreatMaps(board, boardSize, king, ctx, tileSize, red, isFlipped, blue);
+  }, [colourThreats])
 
   const selectPiece = (e, tileSize, board) => {
     const isFlipped = playerTurn === "black" && preventFlipping;
@@ -123,10 +133,22 @@ function App({ preventFlipping, debug }) {
         ></canvas>
       </div>
 
-      {gameCode && (
+      {gameCode ? (
         <div className="mt-4 text-lg font-semibold">
           Game Code: <span className="text-blue-400">{gameCode}</span>
         </div>
+      ) : (
+        <button
+          className={`mt-4 py-3 px-8 rounded-lg shadow-md font-bold transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 ${
+            colourThreats
+              ? "bg-red-600 hover:bg-red-700 focus:ring-red-500"
+              : "bg-green-600 hover:bg-green-700 focus:ring-green-500"
+          }`}
+          style={{ width: tileSize * boardSize + 40 }}
+          onClick={() => setColourThreats((colourThreats) => !colourThreats)}
+          >
+          {colourThreats ? "Disable Threat Colouring" : "Enable Threat Colouring"}
+        </button>
       )}
     </div>
   );
