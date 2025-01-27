@@ -30,12 +30,6 @@ function ModeSelection() {
                 >
                     Multiplayer
                 </button>
-                <button
-                    className="bg-gray-800 text-white font-bold py-4 px-8 rounded-lg shadow-md hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-600 focus:ring-opacity-50"
-                    onClick={() => navigate("/debug")}
-                >
-                    Debug
-                </button>
             </div>
         </div>
     );
