@@ -10,7 +10,6 @@ function RouteDefinitions() {
       <Route path="/" element={<ModeSelection />} />
       <Route path="/connectToLobby" element={<LobbyPage />} />
       <Route path="/passAndPlay" element={<App preventFlipping={true} />} />
-      <Route path="/debug" element={<App preventFlipping={false} />} />
       <Route path="/singlePlayer" element={<App preventFlipping={false} />} />
       <Route path="/multiplayer" element={<App preventFlipping={false} />} />
     </Routes>
