@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "zA39iGROQQ37UOGYrNS+QcfZ3ozdhWl6HLBZWuJXuio=",
+  "Source": "multiplayer_service",
+  "BasePath": "_content/multiplayer_service",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
