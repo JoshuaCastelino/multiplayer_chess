@@ -63,7 +63,8 @@ function App({ preventFlipping }) {
     const { movesByPosition, checkmated, checked, stalemated } = generateAllLegalMoves(board, king);
     const isFlipped = nextTurn === "black" && preventFlipping;
     redrawBoard(canvas, board, boardSize, tileSize, isFlipped);
-    if (colourThreats) renderThreatMaps(board, boardSize, king, ctx, tileSize, red, isFlipped, blue);
+    if (colourThreats)
+      renderThreatMaps(board, boardSize, king, ctx, tileSize, red, isFlipped, blue);
     setPlayerTurn(nextTurn);
     setAllLegalMoves(movesByPosition);
     if (checked) {
@@ -83,8 +84,12 @@ function App({ preventFlipping }) {
     const nextTurn = playerTurn == "white" ? "black" : "white";
     const king = kings[nextTurn];
     const isFlipped = nextTurn === "black" && preventFlipping;
-    if (colourThreats) renderThreatMaps(board, boardSize, king, ctx, tileSize, red, isFlipped, blue);
-  }, [colourThreats])
+    if (colourThreats) {
+      renderThreatMaps(board, boardSize, king, ctx, tileSize, red, isFlipped, blue);
+    } else {
+      redrawBoard(canvas, board, boardSize, tileSize, isFlipped);
+    }
+  }, [colourThreats]);
 
   const selectPiece = (e, tileSize, board) => {
     const isFlipped = playerTurn === "black" && preventFlipping;
@@ -146,7 +151,7 @@ function App({ preventFlipping }) {
           }`}
           style={{ width: tileSize * boardSize + 40 }}
           onClick={() => setColourThreats((colourThreats) => !colourThreats)}
-          >
+        >
           {colourThreats ? "Disable Threat Colouring" : "Enable Threat Colouring"}
         </button>
       )}
