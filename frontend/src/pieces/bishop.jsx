@@ -16,6 +16,7 @@ class Bishop extends SlidingPiece {
 
     const src = colour === "white" ? whiteBishopSVG : blackBishopSVG;
     this.imagePromise = loadImage(src);
+    this.strRepresentation = "B"
   }
 }
 

@@ -17,6 +17,7 @@ class Queen extends SlidingPiece {
     ];
     const src = colour === "white" ? whiteQueenSVG : blackQueenSVG;
     this.imagePromise = loadImage(src);
+    this.strRepresentation = "Q"
   }
 }
 

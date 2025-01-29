@@ -21,6 +21,7 @@ class Knight {
     ];
     const src = colour === "white" ? whiteKnightSVG : blackKnightSVG;
     this.imagePromise = loadImage(src);
+    this.strRepresentation = "N"
   }
 
   generateLegalMoves(board) {

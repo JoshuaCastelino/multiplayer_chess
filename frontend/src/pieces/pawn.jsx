@@ -11,6 +11,7 @@ class Pawn {
     this.firstMove = true;
     const src = colour === "white" ? whitePawnSVG : blackPawnSVG;
     this.imagePromise = loadImage(src);
+    this.strRepresentation = "P"
   }
 
   generateLegalMoves(board) {

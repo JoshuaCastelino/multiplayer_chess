@@ -14,7 +14,7 @@ builder.Services.AddCors(options =>
     });
 });
 var app = builder.Build();
-
+app.UseCors();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -27,5 +27,12 @@ Dictionary<string, string> lobbyCodesToGameState = new Dictionary<string, string
 app.UseHttpsRedirection();
 
 app.MapGet("/test", () => "Hello, world!");
+
+app.MapPost("/add-game", ([FromBody] GameData data) =>
+{
+    lobbyCodesToGameState[data.LobbyCode] = data.GameState;
+    return Results.Ok(new { message = "Data received successfully!" });
+});
+
 
 app.Run();

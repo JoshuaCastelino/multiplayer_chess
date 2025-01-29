@@ -14,6 +14,7 @@ class Rook extends SlidingPiece {
     ];
     const src = colour === "white" ? whiteRookSVG : blackRookSVG;
     this.imagePromise = loadImage(src);
+    this.strRepresentation = "R"
   }
 }
 

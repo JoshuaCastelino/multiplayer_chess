@@ -23,6 +23,7 @@ class King {
 
     const src = colour === "white" ? whiteKingSVG : blackKingSVG;
     this.imagePromise = loadImage(src);
+    this.strRepresentation = "K"
   }
 
   checkCastle(board, kingRow, kingCol) {
