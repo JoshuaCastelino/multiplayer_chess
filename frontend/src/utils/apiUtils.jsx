@@ -1,3 +1,10 @@
+import Bishop from "../pieces/bishop";
+import King from "../pieces/king";
+import Knight from "../pieces/knight";
+import Pawn from "../pieces/pawn";
+import Queen from "../pieces/queen";
+import Rook from "../pieces/rook";
+
 export function serialiseBoard(board) {
   let serialisedBoard = "";
   for (const row of board) {
@@ -10,7 +17,6 @@ export function serialiseBoard(board) {
       }
     }
   }
-  console.log(serialisedBoard);
   return serialisedBoard;
 }
 
@@ -70,6 +76,5 @@ export function deserialiseBoard(serialisedBoard, boardSize, ctx) {
   if (row.length > 0) {
     newBoard.push(row);
   }
-
   return newBoard;
 }

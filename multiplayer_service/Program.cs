@@ -36,3 +36,5 @@ app.MapPost("/add-game", ([FromBody] GameData data) =>
 
 
 app.Run();
+
+record GameData(string LobbyCode, string GameState);

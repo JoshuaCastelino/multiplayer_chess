@@ -17,7 +17,7 @@ import {
   colourCheck,
 } from "./utils/Render";
 import King from "./pieces/king";
-import { serialiseBoard } from "./utils/apiUtils";
+import { deserialiseBoard, serialiseBoard } from "./utils/apiUtils";
 
 function App({ preventFlipping }) {
   const canvasRef = useRef(null);
@@ -41,7 +41,8 @@ function App({ preventFlipping }) {
     const ctx = canvas.getContext("2d");
     const { board, blackKing, whiteKing } = initialise(ctx, boardSize);
     setBoard(board);
-    serialiseBoard(board)
+    let serialisedBoard = serialiseBoard(board)
+    let deserialisedBoard = deserialiseBoard(serialisedBoard, boardSize, ctx)
     setKings({ white: whiteKing, black: blackKing });
   }, []);
 
