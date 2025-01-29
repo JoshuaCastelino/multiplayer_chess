@@ -1,25 +1,27 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import whiteQueen from "./assets/white_queen.svg";
+import { testAPI } from "./api";
 
 function LobbyPage() {
   const navigate = useNavigate();
 
-  const generateGameCode = () => {
-    return Math.random().toString(36).substring(2, 10).toUpperCase();
-  };
-
-  const handleCreateGame = () => {
+  async function handleCreateGame() {
     // Need to check if this game code is in use
     const gameCode = generateGameCode(8);
+    await testAPI();
     navigate(`/multiplayer/?code=${gameCode}`);
-  };
+  }
 
   const handleJoinGame = (event) => {
     event.preventDefault();
     const gameCode = event.target.gameCode.value;
     // Before navigating need to check this code actually exists on the server
     navigate(`/multiplayer/?code=${gameCode}`);
+  };
+
+  const generateGameCode = () => {
+    return Math.random().toString(36).substring(2, 10).toUpperCase();
   };
 
   return (
@@ -50,7 +52,7 @@ function LobbyPage() {
             className="bg-gray-700 text-white font-bold py-4 px-8 rounded-lg shadow-md focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50 text-center placeholder-gray-400 w-full border border-gray-600 transition-all duration-200"
             required
             onInput={(e) => {
-              e.target.value = e.target.value.toUpperCase(); 
+              e.target.value = e.target.value.toUpperCase();
             }}
           />
 
