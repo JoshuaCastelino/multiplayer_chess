@@ -51,26 +51,22 @@ function App({ preventFlipping }) {
     if (!board.length || !canvas) return;
 
     if (selectedPiece instanceof King) {
-      setKings((prev) => ({
-        ...prev,
-        pieceColour: selectedPiece,
-      }));
+      setKings((prev) => ({ ...prev, pieceColour: selectedPiece }));
     }
-
-    setLegalMoves([]);
-    setSelectedPiece(undefined);
 
     const ctx = canvas.getContext("2d");
     const nextTurn = playerTurn == "white" ? "black" : "white";
     const king = kings[nextTurn];
-    const { movesByPosition, endConditions } = generateAllLegalMoves(board, king);
     const isFlipped = nextTurn === "black" && preventFlipping;
+    const { movesByPosition, endConditions } = generateAllLegalMoves(board, king);
+
     redrawBoard(canvas, board, boardSize, tileSize, isFlipped);
-    if (colourThreats)
-      renderThreatMaps(board, boardSize, king, ctx, tileSize, red, isFlipped, blue);
+    if (colourThreats) renderThreatMaps(board, king, ctx, tileSize, red, isFlipped, blue);
     setPlayerTurn(nextTurn);
     setAllLegalMoves(movesByPosition);
     checkGameEndCondition(ctx, king, endConditions, isFlipped, nextTurn, tileSize, boardSize);
+    setLegalMoves([]);
+    setSelectedPiece(undefined);
   }, [board]);
 
   useEffect(() => {
@@ -80,7 +76,7 @@ function App({ preventFlipping }) {
     const king = kings[nextTurn];
     const isFlipped = nextTurn === "black" && preventFlipping;
     if (colourThreats) {
-      renderThreatMaps(board, boardSize, king, ctx, tileSize, red, isFlipped, blue);
+      renderThreatMaps(board, king, ctx, tileSize, red, isFlipped, blue);
     } else {
       redrawBoard(canvas, board, boardSize, tileSize, isFlipped);
     }

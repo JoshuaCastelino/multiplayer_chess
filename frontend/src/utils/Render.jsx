@@ -172,7 +172,8 @@ export async function drawPiece(piece, tileSize, offset = 0, isFlipped = false) 
   piece.ctx.drawImage(img, centerX - pieceSize / 2, centerY - pieceSize / 2, pieceSize, pieceSize);
 }
 
-export function renderThreatMaps(board, boardSize, king, ctx, tileSize, red, isFlipped, blue) {
+export function renderThreatMaps(board, king, ctx, tileSize, red, isFlipped, blue) {
+  const boardSize = board.length
   const { newThreatMapWhite, newThreatMapBlack } = updateThreatMaps(board, boardSize, king);
   colourThreatMap(ctx, tileSize, newThreatMapWhite, red, boardSize, isFlipped);
   colourThreatMap(ctx, tileSize, newThreatMapBlack, blue, boardSize, isFlipped);
