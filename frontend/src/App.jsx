@@ -14,7 +14,7 @@ import {
   redrawBoard,
   pointToCoordinate,
   drawLegalMoves,
-  colourCheck,
+  checkGameEndCondition,
 } from "./utils/Render";
 import King from "./pieces/king";
 import { deserialiseBoard, serialiseBoard } from "./utils/apiUtils";
@@ -41,8 +41,8 @@ function App({ preventFlipping }) {
     const ctx = canvas.getContext("2d");
     const { board, blackKing, whiteKing } = initialise(ctx, boardSize);
     setBoard(board);
-    let serialisedBoard = serialiseBoard(board)
-    let deserialisedBoard = deserialiseBoard(serialisedBoard, boardSize, ctx)
+    let serialisedBoard = serialiseBoard(board);
+    let deserialisedBoard = deserialiseBoard(serialisedBoard, boardSize, ctx);
     setKings({ white: whiteKing, black: blackKing });
   }, []);
 
@@ -63,22 +63,14 @@ function App({ preventFlipping }) {
     const ctx = canvas.getContext("2d");
     const nextTurn = playerTurn == "white" ? "black" : "white";
     const king = kings[nextTurn];
-    const { movesByPosition, checkmated, checked, stalemated } = generateAllLegalMoves(board, king);
+    const { movesByPosition, endConditions } = generateAllLegalMoves(board, king);
     const isFlipped = nextTurn === "black" && preventFlipping;
     redrawBoard(canvas, board, boardSize, tileSize, isFlipped);
     if (colourThreats)
       renderThreatMaps(board, boardSize, king, ctx, tileSize, red, isFlipped, blue);
     setPlayerTurn(nextTurn);
     setAllLegalMoves(movesByPosition);
-    if (checked) {
-      colourCheck(ctx, tileSize, king, boardSize, isFlipped);
-      console.log(`Check true but checkmated ${checkmated}`);
-      if (checkmated) {
-        console.log(`${nextTurn} has been checkmated`);
-      }
-    } else if (stalemated) {
-      console.log(`${nextTurn} has been stalemated`);
-    }
+    checkGameEndCondition(ctx, king, endConditions, isFlipped, nextTurn, tileSize, boardSize);
   }, [board]);
 
   useEffect(() => {
@@ -99,14 +91,12 @@ function App({ preventFlipping }) {
     const { row, col } = pointToCoordinate(canvasRef, e, tileSize, isFlipped);
     if (!isInBounds(row, col, boardSize)) return;
 
-    const positionKey = generateThreatMapKey(row, col);
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     const piece = board[row][col];
-    const pieceColour = piece.colour;
-    const isOwnPiece = pieceColour === playerTurn;
 
-    if (isOwnPiece) {
+    if (piece.colour === playerTurn) {
+      const positionKey = generateThreatMapKey(row, col);
       const legalMoves = allLegalMoves[positionKey];
       setSelectedPiece(piece);
       setLegalMoves(allLegalMoves[positionKey]);

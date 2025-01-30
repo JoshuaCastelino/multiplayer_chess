@@ -177,3 +177,19 @@ export function renderThreatMaps(board, boardSize, king, ctx, tileSize, red, isF
   colourThreatMap(ctx, tileSize, newThreatMapWhite, red, boardSize, isFlipped);
   colourThreatMap(ctx, tileSize, newThreatMapBlack, blue, boardSize, isFlipped);
 }
+
+export function checkGameEndCondition(ctx, king, endConditons, isFlipped, nextTurn, tileSize, boardSize) {
+  const checked = endConditons["checked"]
+  const checkmated = endConditons["checkmated"]
+  const stalemated = endConditons["stalemated"]
+  
+  if (checked) {
+    colourCheck(ctx, tileSize, king, boardSize, isFlipped);
+    console.log(`Check true but checkmated ${checkmated}`);
+    if (checkmated) {
+      console.log(`${nextTurn} has been checkmated`);
+    }
+  } else if (stalemated) {
+    console.log(`${nextTurn} has been stalemated`);
+  }
+}

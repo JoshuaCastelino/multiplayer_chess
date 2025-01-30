@@ -162,8 +162,9 @@ export function generateAllLegalMoves(board, king) {
   }
 
   const checkmated = checked && stalemated;
+  const endConditions = {checked, checkmated, stalemated}
 
-  return { movesByPosition, checkmated, checked, stalemated };
+  return { movesByPosition, endConditions};
 }
 
 export function isPiecePinned(king, curPiece, board, curRow, curCol, newRow, newCol) {
