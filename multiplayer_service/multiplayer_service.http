@@ -1,6 +1,0 @@
-@multiplayer_service_HostAddress = http://localhost:5104
-
-GET {{multiplayer_service_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
