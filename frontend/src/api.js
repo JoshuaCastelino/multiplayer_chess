@@ -1,9 +1,6 @@
-import {
-  HubConnectionBuilder,
-  HubConnectionState
-} from "@microsoft/signalr";
+import { HubConnectionBuilder, HubConnectionState } from "@microsoft/signalr";
 
-let connection;
+export var connection;
 
 export async function startConnection() {
   if (!connection) {
@@ -12,7 +9,7 @@ export async function startConnection() {
       .withAutomaticReconnect()
       .build();
   }
-  
+
   if (connection.state === HubConnectionState.Disconnected) {
     try {
       await connection.start();
@@ -23,18 +20,46 @@ export async function startConnection() {
   }
 }
 
-
-
-export const sendMessage = async (user, message) => {
+export const createGame = async (code) => {
   if (connection.state === HubConnectionState.Connected) {
-    await connection.invoke("SendMessage", user, message);
+    const connectionID = connection.connectionId;
+    await connection.invoke("CreateGame", connectionID, code);
   } else {
     console.error("SignalR not connected");
   }
 };
 
-export const subscribeToMessages = (callback) => {
-  connection.on("ReceiveMessage", callback);
+export const joinGame = async (code) => {
+  if (connection.state === HubConnectionState.Connected) {
+    const connectionID = connection.connectionId;
+    await connection.invoke("JoinGame", connectionID, code);
+  } else {
+    console.error("SignalR not connected");
+  }
 };
 
-export default connection;
+
+export function onJoinGameResponse(response) {
+  console.log(response)
+  if (!response) {
+    console.error("Received undefined or null response from server.");
+    alert("Error: Unexpected server response. Please try again.");
+    return;
+}
+  const success = response.success ?? false;
+    const message = response.messageessage ?? "Unknown error.";
+    const isGameFull = response.isGameFull ?? false;
+    const isInvalidCode = response.isInvalidCode ?? false;
+
+    if (!success) {
+        if (isInvalidCode) {
+            alert("Error: Invalid game code. Please check and try again.");
+        } else if (isGameFull) {
+            alert("Error: This game is already full.");
+        } else {
+            alert("Error: " + message);
+        }
+    } else {
+        console.log(message); // "You have successfully joined the game."
+    }
+}

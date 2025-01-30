@@ -1,27 +1,36 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import whiteQueen from "./assets/white_queen.svg";
-import { startConnection, sendMessage, subscribeToMessages } from "./api";
+import { connection, startConnection, createGame, joinGame, onJoinGameResponse } from "./api";
 
 function LobbyPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
     startConnection();
-    subscribeToMessages((user, msg) => {
+    const callback = (code) => {console.log(code)} 
+    connection.on("ReceiveMessage",callback);
+    connection.on("JoinGameResponse", (response) => {
+      onJoinGameResponse(response);
     });
+
+    return () => {
+      connection.off("JoinGameResponse", onJoinGameResponse);
+      connection.off("ReceiveMessage", callback);
+    };
   }, []);
 
   async function handleCreateGame() {
     // Need to check if this game code is in use
     const gameCode = generateGameCode(8);
-    sendMessage("white", gameCode)
+    createGame(gameCode);
     navigate(`/multiplayer/?code=${gameCode}`);
   }
 
   const handleJoinGame = (event) => {
     event.preventDefault();
     const gameCode = event.target.gameCode.value;
+    joinGame(gameCode);
     // Before navigating need to check this code actually exists on the server
     navigate(`/multiplayer/?code=${gameCode}`);
   };
