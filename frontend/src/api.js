@@ -1,14 +1,40 @@
-import axios from "axios";
+import {
+  HubConnectionBuilder,
+  HubConnectionState
+} from "@microsoft/signalr";
 
-const PORT = 5104
-const API_URL = `http://localhost:${PORT}`;
-console.log(API_URL)
-export const testAPI = async () => {
-  try {
-    const response = await axios.get(`${API_URL}/test`);
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching weather data:", error);
-    return [];
+let connection;
+
+export async function startConnection() {
+  if (!connection) {
+    connection = new HubConnectionBuilder()
+      .withUrl("http://localhost:5150/gamehub")
+      .withAutomaticReconnect()
+      .build();
+  }
+  
+  if (connection.state === HubConnectionState.Disconnected) {
+    try {
+      await connection.start();
+      console.log("Connection started");
+    } catch (error) {
+      console.error("Error starting connection:", error);
+    }
+  }
+}
+
+
+
+export const sendMessage = async (user, message) => {
+  if (connection.state === HubConnectionState.Connected) {
+    await connection.invoke("SendMessage", user, message);
+  } else {
+    console.error("SignalR not connected");
   }
 };
+
+export const subscribeToMessages = (callback) => {
+  connection.on("ReceiveMessage", callback);
+};
+
+export default connection;

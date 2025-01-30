@@ -43,6 +43,7 @@ function App({ preventFlipping }) {
     setBoard(board);
     let serialisedBoard = serialiseBoard(board);
     let deserialisedBoard = deserialiseBoard(serialisedBoard, boardSize, ctx);
+    console.log(serialisedBoard);
     setKings({ white: whiteKing, black: blackKing });
   }, []);
 

@@ -1,15 +1,21 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import whiteQueen from "./assets/white_queen.svg";
-import { testAPI } from "./api";
+import { startConnection, sendMessage, subscribeToMessages } from "./api";
 
 function LobbyPage() {
   const navigate = useNavigate();
 
+  useEffect(() => {
+    startConnection();
+    subscribeToMessages((user, msg) => {
+    });
+  }, []);
+
   async function handleCreateGame() {
     // Need to check if this game code is in use
     const gameCode = generateGameCode(8);
-    await testAPI();
+    sendMessage("white", gameCode)
     navigate(`/multiplayer/?code=${gameCode}`);
   }
 
