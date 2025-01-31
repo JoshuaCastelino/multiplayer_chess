@@ -3,8 +3,8 @@ using System.Threading.Tasks;
 using System.Collections.Concurrent;
 public class GameHub : Hub
 {
-    private ConcurrentDictionary<string, GameState> codeToGameState = new ConcurrentDictionary<string, GameState>();
-    private static ConcurrentDictionary<string, string> userConnections = new ConcurrentDictionary<string, string>();
+    public static ConcurrentDictionary<string, GameState> codeToGameState = new ConcurrentDictionary<string, GameState>();
+    public static ConcurrentDictionary<string, string> userConnections = new ConcurrentDictionary<string, string>();
     private string initialBoard = @"
     bRbNbBbQbKbBbNbRb
     PbPbPbPbPbPbPbP
