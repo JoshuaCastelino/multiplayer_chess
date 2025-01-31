@@ -8,8 +8,6 @@ function LobbyPage() {
 
   useEffect(() => {
     startConnection();
-    const callback = (code) => {console.log(code)} 
-    connection.on("ReceiveMessage",callback);
   }, []);
 
   async function handleCreateGame() {

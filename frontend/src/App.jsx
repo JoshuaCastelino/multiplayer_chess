@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import whiteQueen from "./assets/white_queen.svg";
+import { connection, startConnection, createGame, joinGame } from "./api";
 
 import {
   initialise,
@@ -19,7 +20,7 @@ import {
 import King from "./pieces/king";
 import { deserialiseBoard, serialiseBoard } from "./utils/apiUtils";
 
-function App({ preventFlipping }) {
+function App({ preventFlipping, multiplayer }) {
   const canvasRef = useRef(null);
   const navigate = useNavigate();
   const tileSize = 80;
@@ -34,6 +35,8 @@ function App({ preventFlipping }) {
   const [kings, setKings] = useState({ white: null, black: null });
   const [allLegalMoves, setAllLegalMoves] = useState(null);
   const [colourThreats, setColourThreats] = useState(false);
+  const [isWaitingForOpponent, setIsWaitingForOpponent] = useState(multiplayer);
+
   const gameCode = new URLSearchParams(location.search).get("code");
 
   useEffect(() => {
@@ -41,27 +44,38 @@ function App({ preventFlipping }) {
     const ctx = canvas.getContext("2d");
     const { board, blackKing, whiteKing } = initialise(ctx, boardSize);
     setBoard(board);
-    let serialisedBoard = serialiseBoard(board);
-    let deserialisedBoard = deserialiseBoard(serialisedBoard, boardSize, ctx);
     setKings({ white: whiteKing, black: blackKing });
+
+    // Listen for messages
+    connection.on("ReceiveMessage", callback);
   }, []);
+
+  // Adjust your callback to track success/failure
+  const callback = (successResponse) => {
+    if (successResponse.success === false) {
+      setIsWaitingForOpponent(true);
+    } else {
+      setIsWaitingForOpponent(false);
+    }
+  };
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!board.length || !canvas) return;
-
     if (selectedPiece instanceof King) {
       setKings((prev) => ({ ...prev, pieceColour: selectedPiece }));
     }
 
     const ctx = canvas.getContext("2d");
-    const nextTurn = playerTurn == "white" ? "black" : "white";
+    const nextTurn = playerTurn === "white" ? "black" : "white";
     const king = kings[nextTurn];
     const isFlipped = nextTurn === "black" && preventFlipping;
     const { movesByPosition, endConditions } = generateAllLegalMoves(board, king);
 
     redrawBoard(canvas, board, boardSize, tileSize, isFlipped);
-    if (colourThreats) renderThreatMaps(board, king, ctx, tileSize, red, isFlipped, blue);
+    if (colourThreats) {
+      renderThreatMaps(board, king, ctx, tileSize, red, isFlipped, blue);
+    }
     setPlayerTurn(nextTurn);
     setAllLegalMoves(movesByPosition);
     checkGameEndCondition(ctx, king, endConditions, isFlipped, nextTurn, tileSize, boardSize);
@@ -72,7 +86,7 @@ function App({ preventFlipping }) {
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
-    const nextTurn = playerTurn == "white" ? "black" : "white";
+    const nextTurn = playerTurn === "white" ? "black" : "white";
     const king = kings[nextTurn];
     const isFlipped = nextTurn === "black" && preventFlipping;
     if (colourThreats) {
@@ -82,7 +96,16 @@ function App({ preventFlipping }) {
     }
   }, [colourThreats]);
 
+  // Updated selectPiece to block if waiting for opponent
   const selectPiece = (e, tileSize, board) => {
+    console.log("here")
+
+    if (isWaitingForOpponent) {
+      return;
+    }
+
+    console.log(isWaitingForOpponent)
+
     const isFlipped = playerTurn === "black" && preventFlipping;
     const { row, col } = pointToCoordinate(canvasRef, e, tileSize, isFlipped);
     if (!isInBounds(row, col, boardSize)) return;
@@ -95,7 +118,7 @@ function App({ preventFlipping }) {
       const positionKey = generateThreatMapKey(row, col);
       const legalMoves = allLegalMoves[positionKey];
       setSelectedPiece(piece);
-      setLegalMoves(allLegalMoves[positionKey]);
+      setLegalMoves(legalMoves);
       redrawBoard(canvas, board, boardSize, tileSize, isFlipped);
       drawLegalMoves(legalMoves, tileSize, ctx, red, boardSize, isFlipped);
     } else if (selectedPiece) {
@@ -127,6 +150,13 @@ function App({ preventFlipping }) {
         ></canvas>
       </div>
 
+      {/* If we’re waiting for opponent, show a “waiting” message */}
+      {multiplayer && isWaitingForOpponent && (
+        <div className="mt-4 text-lg font-semibold text-red-400">
+          Waiting for opponent...
+        </div>
+      )}
+
       {gameCode ? (
         <div className="mt-4 text-lg font-semibold">
           Game Code: <span className="text-blue-400">{gameCode}</span>
@@ -139,7 +169,7 @@ function App({ preventFlipping }) {
               : "bg-green-600 hover:bg-green-700 focus:ring-green-500"
           }`}
           style={{ width: tileSize * boardSize + 40 }}
-          onClick={() => setColourThreats((colourThreats) => !colourThreats)}
+          onClick={() => setColourThreats((prev) => !prev)}
         >
           {colourThreats ? "Disable Threat Colouring" : "Enable Threat Colouring"}
         </button>

@@ -30,12 +30,55 @@ public class GameHub : Hub
         return base.OnDisconnectedAsync(exception);
     }
 
+    public async Task SendMove(string playerTurn, string connectionId, string code, string board)
+    {
+        // Attempt to retrieve the game state using the provided code
+        bool foundGameState = codeToGameState.TryGetValue(code, out GameState? currentGameState);
+
+        if (!foundGameState || currentGameState == null)
+        {
+            var invalidResponse = new GameResponse
+            {
+                Success = false,
+                Message = "Invalid game code.",
+                IsInvalidCode = true
+            };
+
+            // Notify the sender of failure
+            await Clients.Client(connectionId).SendAsync("ReceiveMessage", invalidResponse);
+            return;
+        }
+        else
+        {
+            // Identify which connection to send the move to
+            string sendMoveTo = playerTurn == "white"
+                ? currentGameState.BlackConnectionID
+                : currentGameState.WhiteConnectionID;
+
+            // Create a response object
+            var response = new GameResponse
+            {
+                Success = true,
+                Message = board
+            };
+
+            // Update the board state in the current game
+            currentGameState.BoardState = board;
+
+            // Notify the player that their move was successful
+            await Clients.Client(connectionId).SendAsync("ReceiveMessage", response);
+
+            // Notify the opponent that the board state changed
+            await Clients.Client(sendMoveTo).SendAsync("ReceiveMessage", response);
+        }
+    }
+
+
     public async Task CreateGame(string connectionId, string code)
     {
         Console.WriteLine($"Creating Game {connectionId}, {code}");
         GameState gameState = new GameState(connectionId, null, initialBoard);
         codeToGameState[code] = gameState;
-        await Clients.Client(connectionId).SendAsync("ReceiveMessage", "Created Lobby", code);
     }
 
     public async Task JoinGame(string connectionId, string code)
@@ -44,13 +87,13 @@ public class GameHub : Hub
         {
             Console.WriteLine("INVALID GAME CODE");
             // Return error for invalid game code
-            var response = new JoinGameResponse
+            var response = new GameResponse
             {
                 Success = false,
                 Message = "Invalid game code.",
                 IsInvalidCode = true
             };
-            await Clients.Client(connectionId).SendAsync("JoinGameResponse", response);
+            await Clients.Client(connectionId).SendAsync("GameResponse", response);
             return;
         }
 
@@ -58,26 +101,28 @@ public class GameHub : Hub
         {
             Console.WriteLine("GAME IS ALREADY FULL");
             // Return error for game being full
-            var response = new JoinGameResponse
+            var response = new GameResponse
             {
                 Success = false,
                 Message = "This game is already full.",
                 IsGameFull = true
             };
-            await Clients.Client(connectionId).SendAsync("JoinGameResponse", response);
+            await Clients.Client(connectionId).SendAsync("GameResponse", response);
             return;
         }
 
         // Join the game successfully
         joiningGame.BlackConnectionID = connectionId;
-
-        var successResponse = new JoinGameResponse
+        string whiteConnectionID = joiningGame.WhiteConnectionID;
+        Console.WriteLine(whiteConnectionID);
+        var successResponse = new GameResponse
         {
             Success = true,
             Message = "You have successfully joined the game."
         };
 
-        await Clients.Client(connectionId).SendAsync("JoinGameResponse", successResponse);
+        await Clients.Client(connectionId).SendAsync("GameResponse", successResponse);
+        await Clients.Client(whiteConnectionID).SendAsync("ReceiveMessage", successResponse);
     }
 
 
@@ -98,7 +143,7 @@ public record class GameState
 }
 
 
-public class JoinGameResponse
+public class GameResponse
 {
     public bool Success { get; set; }
     public string Message { get; set; }
