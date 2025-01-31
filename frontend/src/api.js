@@ -30,36 +30,55 @@ export const createGame = async (code) => {
 };
 
 export const joinGame = async (code) => {
-  if (connection.state === HubConnectionState.Connected) {
-    const connectionID = connection.connectionId;
-    await connection.invoke("JoinGame", connectionID, code);
-  } else {
-    console.error("SignalR not connected");
-  }
+  return new Promise(async (resolve, reject) => {
+    if (connection.state === HubConnectionState.Connected) {
+      const connectionID = connection.connectionId;
+
+      const handleResponse = (response) => {
+        connection.off("JoinGameResponse", handleResponse);
+        if (response.success) {
+          console.log(response);
+          resolve(response);
+        } else {
+          reject(response);
+        }
+      };
+
+      connection.on("JoinGameResponse", handleResponse);
+      await connection.invoke("JoinGame", connectionID, code);
+    } else {
+      console.error("SignalR not connected");
+      reject({
+        success: false,
+        message: "Not connected to SignalR",
+        isGameFull: false,
+        isInvalidCode: false,
+      });
+    }
+  });
 };
 
-
 export function onJoinGameResponse(response) {
-  console.log(response)
+  console.log(response);
   if (!response) {
     console.error("Received undefined or null response from server.");
     alert("Error: Unexpected server response. Please try again.");
     return;
-}
+  }
   const success = response.success ?? false;
-    const message = response.messageessage ?? "Unknown error.";
-    const isGameFull = response.isGameFull ?? false;
-    const isInvalidCode = response.isInvalidCode ?? false;
+  const message = response.messageessage ?? "Unknown error.";
+  const isGameFull = response.isGameFull ?? false;
+  const isInvalidCode = response.isInvalidCode ?? false;
 
-    if (!success) {
-        if (isInvalidCode) {
-            alert("Error: Invalid game code. Please check and try again.");
-        } else if (isGameFull) {
-            alert("Error: This game is already full.");
-        } else {
-            alert("Error: " + message);
-        }
+  if (!success) {
+    if (isInvalidCode) {
+      alert("Error: Invalid game code. Please check and try again.");
+    } else if (isGameFull) {
+      alert("Error: This game is already full.");
     } else {
-        console.log(message); // "You have successfully joined the game."
+      alert("Error: " + message);
     }
+  } else {
+    console.log(message); // "You have successfully joined the game."
+  }
 }

@@ -9,9 +9,9 @@ function RouteDefinitions() {
     <Routes>
       <Route path="/" element={<ModeSelection />} />
       <Route path="/connectToLobby" element={<LobbyPage />} />
-      <Route path="/passAndPlay" element={<App preventFlipping={true} />} />
-      <Route path="/singlePlayer" element={<App preventFlipping={false} />} />
-      <Route path="/multiplayer" element={<App preventFlipping={false} />} />
+      <Route path="/passAndPlay" element={<App preventFlipping={true} multiplayer={false} />} />
+      <Route path="/singlePlayer" element={<App preventFlipping={false} multiplayer={false}/>} />
+      <Route path="/multiplayer" element={<App preventFlipping={false} multiplayer={true}/>} />
     </Routes>
   );
 }
