@@ -78,8 +78,19 @@ public class GameHub : Hub
     public async Task CreateGame(string connectionId, string code)
     {
         Console.WriteLine($"Creating Game {connectionId}, {code}");
+
+        // If more than 5 games exist, wipe all games
+        if (codeToGameState.Count >= 5)
+        {
+            Console.WriteLine("Too many games. Wiping all existing games...");
+            codeToGameState.Clear(); // Clears all stored games
+        }
+
+        // Create and store new game
         GameState gameState = new GameState(connectionId, null, initialBoard);
         codeToGameState[code] = gameState;
+
+        Console.WriteLine($"Game {code} created successfully.");
     }
 
     public async Task JoinGame(string connectionId, string code)
