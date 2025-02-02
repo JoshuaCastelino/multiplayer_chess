@@ -16,7 +16,6 @@ import {
   drawLegalMoves,
   checkGameEndCondition,
 } from "./utils/Render";
-import King from "./pieces/king";
 import { deserialiseBoard, serialiseBoard } from "./utils/apiUtils";
 
 function App({ preventFlipping, multiplayer }) {
@@ -71,7 +70,7 @@ function App({ preventFlipping, multiplayer }) {
 
     return () => {
       if (multiplayer) {
-        connection.off("BlackJoined");
+        connection.off("BlackJoined", (res) => setIsWaitingForOpponent(!res.success));
         connection.off("MoveMade", handleMoveMade);
       }
     };
@@ -185,9 +184,12 @@ function App({ preventFlipping, multiplayer }) {
         ></canvas>
       </div>
 
-      {multiplayer && isWaitingForOpponent && (
-        <div className="mt-4 text-lg font-semibold text-red-400">Waiting for opponent...</div>
-      )}
+      {multiplayer &&
+        (isWaitingForOpponent ? (
+          <div className="mt-4 text-lg font-semibold text-red-400">Waiting for opponent...</div>
+        ) : (
+          <div className="mt-4 text-lg font-semibold text-green-400">Your move!</div>
+        ))}
 
       {gameCode ? (
         <div className="mt-4 text-lg font-semibold">

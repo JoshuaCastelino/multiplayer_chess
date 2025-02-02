@@ -1,16 +1,12 @@
 import { HubConnectionBuilder, HubConnectionState } from "@microsoft/signalr";
 
-export var connection;
+export const connection = new HubConnectionBuilder()
+  .withUrl("http://localhost:5150/gamehub")
+  .withAutomaticReconnect()
+  .build();
 
 export async function startConnection() {
-  if (!connection) {
-    connection = new HubConnectionBuilder()
-      .withUrl("http://localhost:5150/gamehub")
-      .withAutomaticReconnect()
-      .build();
-  }
-
-  if (connection.state === HubConnectionState.Disconnected) {
+  if (connection.state === "Disconnected") {
     try {
       await connection.start();
       console.log("Connection started");

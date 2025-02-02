@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import whiteQueen from "./assets/white_queen.svg";
-import { connection, startConnection, createGame, joinGame } from "./api";
+import { startConnection, createGame, joinGame } from "./api";
 
 function LobbyPage() {
   const navigate = useNavigate();
