@@ -1,132 +1,108 @@
 using Microsoft.AspNetCore.SignalR;
+using System;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
+
 public class GameHub : Hub
 {
-    public static ConcurrentDictionary<string, GameState> codeToGameState = new ConcurrentDictionary<string, GameState>();
-    public static ConcurrentDictionary<string, string> userConnections = new ConcurrentDictionary<string, string>();
-    private string initialBoard = @"
-    bRbNbBbQbKbBbNbRb
-    PbPbPbPbPbPbPbP
-    0000000000000000
-    0000000000000000
-    0000000000000000
-    0000000000000000
-    wPwPwPwPwPwPwPwP
-    wRwNwBwQwKwBwNwR";
+    // Use readonly static dictionaries for game state and user connections.
+    private static readonly ConcurrentDictionary<string, GameState> CodeToGameState = new ConcurrentDictionary<string, GameState>();
+    private static readonly ConcurrentDictionary<string, string> UserConnections = new ConcurrentDictionary<string, string>();
 
-
+    private const string InitialBoard =
+        "bRbNbBbQbKbBbNbRb\n" +
+        "PbPbPbPbPbPbPbP\n" +
+        "0000000000000000\n" +
+        "0000000000000000\n" +
+        "0000000000000000\n" +
+        "0000000000000000\n" +
+        "wPwPwPwPwPwPwPwP\n" +
+        "wRwNwBwQwKwBwNwR";
 
     public override Task OnConnectedAsync()
     {
         string connectionId = Context.ConnectionId;
-        userConnections[connectionId] = connectionId;
+        UserConnections[connectionId] = connectionId;
         return base.OnConnectedAsync();
     }
 
-    public override Task OnDisconnectedAsync(Exception exception)
+    public override Task OnDisconnectedAsync(Exception? exception)
     {
-        userConnections.TryRemove(Context.ConnectionId, out _);
+        UserConnections.TryRemove(Context.ConnectionId, out _);
         return base.OnDisconnectedAsync(exception);
     }
 
     public async Task SendMove(string playerTurn, string connectionId, string code, string board)
     {
         Console.WriteLine($"{playerTurn}, {connectionId}, {code}, {board}");
-        // Attempt to retrieve the game state using the provided code
-        bool foundGameState = codeToGameState.TryGetValue(code, out GameState? currentGameState);
 
-        if (!foundGameState || currentGameState == null)
+        if (!CodeToGameState.TryGetValue(code, out var currentGameState) || currentGameState is null)
         {
-            var invalidResponse = new GameResponse
-            {
-                Success = false,
-                Message = "Invalid game code.",
-                IsInvalidCode = true
-            };
-
-            // Notify the sender of failure
-            await Clients.Client(connectionId).SendAsync("ReceiveMessage", invalidResponse);
+            await SendErrorResponse(connectionId, "Invalid game code.", isInvalidCode: true);
             return;
         }
-        else
+
+        // Determine the opponent's connection ID based on the current player's turn.
+        string? targetConnection = playerTurn.Equals("white", StringComparison.OrdinalIgnoreCase)
+            ? currentGameState.BlackConnectionID
+            : currentGameState.WhiteConnectionID;
+
+        // Update the game state.
+        currentGameState.BoardState = board;
+
+        // Prepare the response.
+        var response = new GameResponse
         {
-            // Identify which connection to send the move to
-            string sendMoveTo = playerTurn == "white"
-                ? currentGameState.BlackConnectionID
-                : currentGameState.WhiteConnectionID;
+            Success = true,
+            Message = board
+        };
 
-            // Create a response object
-            var response = new GameResponse
-            {
-                Success = true,
-                Message = board
-            };
+        // Notify the sender of success.
+        await Clients.Client(connectionId).SendAsync("ReceiveMessage", response);
 
-            // Update the board state in the current game
-            currentGameState.BoardState = board;
-
-            // Notify the player that their move was successful
-            await Clients.Client(connectionId).SendAsync("ReceiveMessage", response);
-
-            // Notify the opponent that the board state changed
-            await Clients.Client(sendMoveTo).SendAsync("MoveMade", response);
+        // Notify the opponent (if connected) about the move.
+        if (!string.IsNullOrEmpty(targetConnection))
+        {
+            await Clients.Client(targetConnection).SendAsync("MoveMade", response);
         }
     }
-
 
     public async Task CreateGame(string connectionId, string code)
     {
         Console.WriteLine($"Creating Game {connectionId}, {code}");
 
-        // If more than 5 games exist, wipe all games
-        if (codeToGameState.Count >= 5)
+        // If there are 5 or more games, wipe all existing games.
+        if (CodeToGameState.Count >= 5)
         {
-            Console.WriteLine("Too many games. Wiping all existing games...");
-            codeToGameState.Clear(); // Clears all stored games
+            Console.WriteLine("Too many games. Clearing all existing games...");
+            CodeToGameState.Clear();
         }
 
-        // Create and store new game
-        GameState gameState = new GameState(connectionId, null, initialBoard);
-        codeToGameState[code] = gameState;
+        // Create a new game with the creator's connection as the white player.
+        var gameState = new GameState(whiteConnectionId: connectionId, blackConnectionId: null, boardState: InitialBoard);
+        CodeToGameState[code] = gameState;
 
         Console.WriteLine($"Game {code} created successfully.");
     }
 
     public async Task JoinGame(string connectionId, string code)
     {
-        if (!codeToGameState.TryGetValue(code, out GameState? joiningGame))
+        if (!CodeToGameState.TryGetValue(code, out var joiningGame))
         {
-            Console.WriteLine("INVALID GAME CODE");
-            // Return error for invalid game code
-            var response = new GameResponse
-            {
-                Success = false,
-                Message = "Invalid game code.",
-                IsInvalidCode = true
-            };
-            await Clients.Client(connectionId).SendAsync("JoinGameResponse", response);
+            await SendErrorResponse(connectionId, "Invalid game code.", isInvalidCode: true);
             return;
         }
 
         if (!string.IsNullOrEmpty(joiningGame.BlackConnectionID))
         {
-            Console.WriteLine("GAME IS ALREADY FULL");
-            // Return error for game being full
-            var response = new GameResponse
-            {
-                Success = false,
-                Message = "This game is already full.",
-                IsGameFull = true
-            };
-            await Clients.Client(connectionId).SendAsync("JoinGameResponse", response);
+            await SendErrorResponse(connectionId, "This game is already full.", isGameFull: true);
             return;
         }
 
-        // Join the game successfully
+        // Set the joining player's connection as the black player.
         joiningGame.BlackConnectionID = connectionId;
-        string whiteConnectionID = joiningGame.WhiteConnectionID;
-        Console.WriteLine(whiteConnectionID);
+        string whiteConnectionId = joiningGame.WhiteConnectionID ?? string.Empty;
+
         var successResponse = new GameResponse
         {
             Success = true,
@@ -134,31 +110,45 @@ public class GameHub : Hub
         };
 
         await Clients.Client(connectionId).SendAsync("JoinGameResponse", successResponse);
-        await Clients.Client(whiteConnectionID).SendAsync("BlackJoined", successResponse);
+        await Clients.Client(whiteConnectionId).SendAsync("BlackJoined", successResponse);
     }
 
+    /// <summary>
+    /// Helper method to send an error response to the client.
+    /// </summary>
+    private async Task SendErrorResponse(string connectionId, string message, bool isGameFull = false, bool isInvalidCode = false)
+    {
+        var response = new GameResponse
+        {
+            Success = false,
+            Message = message,
+            IsGameFull = isGameFull,
+            IsInvalidCode = isInvalidCode
+        };
 
+        // For join game errors, we send "JoinGameResponse".
+        await Clients.Client(connectionId).SendAsync("JoinGameResponse", response);
+    }
 }
 
-public record class GameState
+public record GameState
 {
     public string? WhiteConnectionID { get; set; }
     public string? BlackConnectionID { get; set; }
     public string BoardState { get; set; }
 
-    public GameState(string? whiteConnectionID, string? blackConnectionID, string boardState)
+    public GameState(string? whiteConnectionId, string? blackConnectionId, string boardState)
     {
-        WhiteConnectionID = whiteConnectionID;
-        BlackConnectionID = blackConnectionID;
+        WhiteConnectionID = whiteConnectionId;
+        BlackConnectionID = blackConnectionId;
         BoardState = boardState;
     }
 }
 
-
 public class GameResponse
 {
     public bool Success { get; set; }
-    public string Message { get; set; }
+    public string Message { get; set; } = string.Empty;
     public bool IsGameFull { get; set; }
     public bool IsInvalidCode { get; set; }
 }
