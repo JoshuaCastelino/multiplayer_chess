@@ -6,13 +6,37 @@ export const connection = new HubConnectionBuilder()
   .build();
 
 export async function startConnection() {
-  if (connection.state === "Disconnected") {
+  if (!connection) {
+    connection = new HubConnectionBuilder()
+      .withUrl("http://localhost:5150/gamehub")
+      .withAutomaticReconnect()
+      .build();
+  }
+
+  if (connection.state === HubConnectionState.Disconnected) {
     try {
       await connection.start();
-      console.log("Connection started");
+      console.log("Connection started:", connection.connectionId);
     } catch (error) {
       console.error("Error starting connection:", error);
     }
+  }
+
+  // Handle disconnection
+  connection.onclose(async () => {
+    console.warn("Disconnected from server!");
+    alert("Connection lost! Trying to reconnect...");
+    await reconnect();
+  });
+}
+
+// Function to attempt reconnecting
+async function reconnect() {
+  try {
+    await startConnection();
+    console.log("Reconnected to SignalR!");
+  } catch (error) {
+    console.error("Reconnection attempt failed:", error);
   }
 }
 

@@ -36,6 +36,15 @@ function App({ preventFlipping, multiplayer }) {
   const [colourThreats, setColourThreats] = useState(false);
   const [isWaitingForOpponent, setIsWaitingForOpponent] = useState(multiplayer);
 
+  const handleBeforeUnload = () => {
+    if (connection && connection.state === "Connected") {
+      console.log("Disconnecting from game");
+      // connection
+      //   .invoke("PlayerExited", connection.connectionId)
+      //   .catch((err) => console.error("Error notifying exit:", err));
+    }
+  };
+
   // ── REMOTE MOVE HANDLER ─────────────────────────────────────────
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -66,12 +75,14 @@ function App({ preventFlipping, multiplayer }) {
     if (multiplayer) {
       connection.on("BlackJoined", (res) => setIsWaitingForOpponent(!res.success));
       connection.on("MoveMade", handleMoveMade);
+      window.addEventListener("beforeunload", handleBeforeUnload);
     }
 
     return () => {
       if (multiplayer) {
         connection.off("BlackJoined", (res) => setIsWaitingForOpponent(!res.success));
         connection.off("MoveMade", handleMoveMade);
+        window.removeEventListener("beforeunload", handleBeforeUnload);
       }
     };
   }, []);
@@ -135,7 +146,7 @@ function App({ preventFlipping, multiplayer }) {
         setBoard(newBoard);
         setPlayerTurn(nextTurn);
         // Send the move using the mover's colour.
-        handleSendMove(newBoard, mover);
+        if (multiplayer) handleSendMove(newBoard, mover);
       }
     }
   };
@@ -163,12 +174,17 @@ function App({ preventFlipping, multiplayer }) {
     }
   }
 
+  function onBackButton() {
+    handleBeforeUnload();
+    navigate("/");
+  }
+
   return (
     <div className="bg-gray-900 text-white h-screen flex flex-col items-center justify-center">
       <button
         className="flex items-center justify-center space-x-4 mb-12 bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 rounded-lg shadow-md transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-gray-600 focus:ring-opacity-50"
         style={{ width: tileSize * boardSize + 40 }}
-        onClick={() => navigate("/")}
+        onClick={() => onBackButton()}
       >
         <img src={whiteQueen} alt="White Queen" className="w-12 h-12" />
         <h1 className="text-4xl font-bold">NotChess.com</h1>
