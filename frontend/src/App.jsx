@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import whiteQueen from "./assets/white_queen.svg";
-import { connection, startConnection, createGame, joinGame } from "./api";
+import { connection, startConnection, createGame, joinGame, sendMove } from "./api";
 
 import {
   initialise,
@@ -18,7 +18,7 @@ import {
   checkGameEndCondition,
 } from "./utils/Render";
 import King from "./pieces/king";
-import { deserialiseBoard, serialiseBoard } from "./utils/apiUtils";
+import { deserialiseBoard, serialiseBoard, serialiseBoard } from "./utils/apiUtils";
 
 function App({ preventFlipping, multiplayer }) {
   const canvasRef = useRef(null);
@@ -50,8 +50,7 @@ function App({ preventFlipping, multiplayer }) {
     connection.on("ReceiveMessage", callback);
   }, []);
 
-  // Adjust your callback to track success/failure
-  const callback = (successResponse) => {
+  const determineSuccess = (successResponse) => {
     if (successResponse.success === false) {
       setIsWaitingForOpponent(true);
     } else {
@@ -98,13 +97,13 @@ function App({ preventFlipping, multiplayer }) {
 
   // Updated selectPiece to block if waiting for opponent
   const selectPiece = (e, tileSize, board) => {
-    console.log("here")
+    console.log("here");
 
-    if (isWaitingForOpponent) {
+    if (multiplayer && isWaitingForOpponent) {
       return;
     }
 
-    console.log(isWaitingForOpponent)
+    console.log(isWaitingForOpponent);
 
     const isFlipped = playerTurn === "black" && preventFlipping;
     const { row, col } = pointToCoordinate(canvasRef, e, tileSize, isFlipped);
@@ -126,6 +125,27 @@ function App({ preventFlipping, multiplayer }) {
       if (isPositionFound) {
         setBoard(newBoard);
       }
+    }
+  };
+
+  async function handleSendMove(nextTurn) {
+    try {
+      let serialisedBoard = serialiseBoard(board)
+      const response = await sendMove(playerTurn, gameCode, serialiseBoard);
+      if (response.success){
+        // Wait for the opponent to make a move
+        setIsWaitingForOpponent(true)
+      }
+      else{
+        // If sending the move failed reset to the last previous state
+        let previousBoard = deserialiseBoard(serialisedBoard)
+        setBoard(previousBoard)
+        // Swap whos turn it is  
+        setPlayerTurn(nextTurn == "white" ? "black" : "white")
+      }
+    } catch (error) {
+      console.error("Send move error:", error.message);
+      alert(error.message);
     }
   };
 
@@ -152,9 +172,7 @@ function App({ preventFlipping, multiplayer }) {
 
       {/* If we’re waiting for opponent, show a “waiting” message */}
       {multiplayer && isWaitingForOpponent && (
-        <div className="mt-4 text-lg font-semibold text-red-400">
-          Waiting for opponent...
-        </div>
+        <div className="mt-4 text-lg font-semibold text-red-400">Waiting for opponent...</div>
       )}
 
       {gameCode ? (

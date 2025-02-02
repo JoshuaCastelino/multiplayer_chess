@@ -69,7 +69,7 @@ public class GameHub : Hub
             await Clients.Client(connectionId).SendAsync("ReceiveMessage", response);
 
             // Notify the opponent that the board state changed
-            await Clients.Client(sendMoveTo).SendAsync("ReceiveMessage", response);
+            await Clients.Client(sendMoveTo).SendAsync("MoveMade", response);
         }
     }
 

@@ -82,3 +82,36 @@ export function onJoinGameResponse(response) {
     console.log(message); // "You have successfully joined the game."
   }
 }
+
+export const sendMove = async (playerTurn, code, board) => {
+  return new Promise(async (resolve, reject) => {
+    if (connection.state === HubConnectionState.Connected) {
+      // The current SignalR client connection ID
+      const connectionId = connection.connectionId;
+
+      // Handler for the server's response
+      const handleMoveResponse = (response) => {
+        // Unsubscribe from the event once we receive a response
+        connection.off("MoveMade", handleMoveResponse);
+
+        if (response.success) {
+          resolve(response);
+        } else {
+          reject(response);
+        }
+      };
+
+      // Listen for the server's response event (e.g., "ReceiveMessage")
+      connection.on("MoveMade", handleMoveResponse);
+
+      await connection.invoke("SendMove", playerTurn, connectionId, code, board);
+    } else {
+      console.error("SignalR not connected");
+      reject({
+        success: false,
+        message: "Not connected to SignalR"
+      });
+    }
+  });
+};
+
