@@ -20,21 +20,21 @@ function LobbyPage() {
   const handleJoinGame = async (event) => {
     event.preventDefault();
     const gameCode = event.target.gameCode.value;
-  
+
     try {
       const response = await joinGame(gameCode);
       if (response.success) {
         navigate(`/multiplayer/?code=${gameCode}`);
+        console.log("navigating");
       } else {
         console.error("Failed to join game:", response.message);
-        alert(response.message); 
+        alert(response.message);
       }
     } catch (error) {
       console.error("Join game error:", error.message);
       alert(error.message);
     }
   };
-  
 
   const generateGameCode = () => {
     return Math.random().toString(36).substring(2, 10).toUpperCase();

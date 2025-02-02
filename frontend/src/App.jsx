@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import whiteQueen from "./assets/white_queen.svg";
-import { connection, startConnection, createGame, joinGame, sendMove } from "./api";
-
+import { connection, sendMove } from "./api";
 import {
   initialise,
   isInBounds,
@@ -18,7 +17,7 @@ import {
   checkGameEndCondition,
 } from "./utils/Render";
 import King from "./pieces/king";
-import { deserialiseBoard, serialiseBoard, serialiseBoard } from "./utils/apiUtils";
+import { deserialiseBoard, serialiseBoard } from "./utils/apiUtils";
 
 function App({ preventFlipping, multiplayer }) {
   const canvasRef = useRef(null);
@@ -27,127 +26,143 @@ function App({ preventFlipping, multiplayer }) {
   const boardSize = 8;
   const red = "rgba(255, 0, 0, 0.5)";
   const blue = "rgba(0, 50, 255, 0.5)";
+  const gameCode = new URLSearchParams(location.search).get("code");
 
   const [board, setBoard] = useState([]);
   const [selectedPiece, setSelectedPiece] = useState(undefined);
-  const [playerTurn, setPlayerTurn] = useState("black");
+  const [playerTurn, setPlayerTurn] = useState("white");
   const [legalMoves, setLegalMoves] = useState([]);
   const [kings, setKings] = useState({ white: null, black: null });
   const [allLegalMoves, setAllLegalMoves] = useState(null);
   const [colourThreats, setColourThreats] = useState(false);
   const [isWaitingForOpponent, setIsWaitingForOpponent] = useState(multiplayer);
 
-  const gameCode = new URLSearchParams(location.search).get("code");
-
+  // ── REMOTE MOVE HANDLER ─────────────────────────────────────────
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
-    const { board, blackKing, whiteKing } = initialise(ctx, boardSize);
-    setBoard(board);
+    // Initialise the board and kings
+    const { board: initBoard, blackKing, whiteKing } = initialise(ctx, boardSize);
+    setBoard(initBoard);
     setKings({ white: whiteKing, black: blackKing });
 
-    // Listen for messages
-    connection.on("ReceiveMessage", callback);
+    const handleMoveMade = (gameState) => {
+      try {
+        console.log("Game state", gameState);
+        if (gameState.success) {
+          const serialisedBoard = gameState.message;
+          const deserialisedBoard = deserialiseBoard(serialisedBoard, boardSize, ctx);
+          setBoard(deserialisedBoard);
+          // Toggle turn for a remote move.
+          setPlayerTurn((prev) => (prev === "white" ? "black" : "white"));
+          setIsWaitingForOpponent(false);
+        } else {
+          console.log("Failure to send move");
+        }
+      } catch (error) {
+        console.error("Move made error:", error.message);
+        alert(error.message);
+      }
+    };
+    if (multiplayer) {
+      connection.on("BlackJoined", (res) => setIsWaitingForOpponent(!res.success));
+      connection.on("MoveMade", handleMoveMade);
+    }
+
+    return () => {
+      if (multiplayer) {
+        connection.off("BlackJoined");
+        connection.off("MoveMade", handleMoveMade);
+      }
+    };
   }, []);
 
-  const determineSuccess = (successResponse) => {
-    if (successResponse.success === false) {
-      setIsWaitingForOpponent(true);
-    } else {
-      setIsWaitingForOpponent(false);
-    }
-  };
-
+  // ── BOARD RENDERING EFFECT ─────────────────────────────────────────
+  // Redraw the board and update legal moves whenever the board or
+  // related flags change.
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!board.length || !canvas) return;
-    if (selectedPiece instanceof King) {
-      setKings((prev) => ({ ...prev, pieceColour: selectedPiece }));
-    }
-
     const ctx = canvas.getContext("2d");
-    const nextTurn = playerTurn === "white" ? "black" : "white";
-    const king = kings[nextTurn];
-    const isFlipped = nextTurn === "black" && preventFlipping;
-    const { movesByPosition, endConditions } = generateAllLegalMoves(board, king);
-
+    const isFlipped = playerTurn === "black" && preventFlipping;
+    // Use the current player's king for rendering legal moves/threat maps.
+    const king = kings[playerTurn];
     redrawBoard(canvas, board, boardSize, tileSize, isFlipped);
-    if (colourThreats) {
+    if (colourThreats && king) {
       renderThreatMaps(board, king, ctx, tileSize, red, isFlipped, blue);
     }
-    setPlayerTurn(nextTurn);
+    const { movesByPosition, endConditions } = king
+      ? generateAllLegalMoves(board, king)
+      : { movesByPosition: {}, endConditions: {} };
     setAllLegalMoves(movesByPosition);
-    checkGameEndCondition(ctx, king, endConditions, isFlipped, nextTurn, tileSize, boardSize);
+    checkGameEndCondition(ctx, king, endConditions, isFlipped, playerTurn, tileSize, boardSize);
     setLegalMoves([]);
     setSelectedPiece(undefined);
-  }, [board]);
+  }, [board, colourThreats, playerTurn, kings]);
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    const nextTurn = playerTurn === "white" ? "black" : "white";
-    const king = kings[nextTurn];
-    const isFlipped = nextTurn === "black" && preventFlipping;
-    if (colourThreats) {
-      renderThreatMaps(board, king, ctx, tileSize, red, isFlipped, blue);
-    } else {
-      redrawBoard(canvas, board, boardSize, tileSize, isFlipped);
-    }
-  }, [colourThreats]);
-
-  // Updated selectPiece to block if waiting for opponent
-  const selectPiece = (e, tileSize, board) => {
-    console.log("here");
-
-    if (multiplayer && isWaitingForOpponent) {
-      return;
-    }
-
-    console.log(isWaitingForOpponent);
+  // ── LOCAL MOVE HANDLER ──────────────────────────────────────────────
+  const selectPiece = (e) => {
+    if (multiplayer && isWaitingForOpponent) return;
 
     const isFlipped = playerTurn === "black" && preventFlipping;
     const { row, col } = pointToCoordinate(canvasRef, e, tileSize, isFlipped);
     if (!isInBounds(row, col, boardSize)) return;
-
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     const piece = board[row][col];
 
-    if (piece.colour === playerTurn) {
+    // If selecting one of your own pieces, show its legal moves.
+    if (piece && piece.colour === playerTurn) {
       const positionKey = generateThreatMapKey(row, col);
-      const legalMoves = allLegalMoves[positionKey];
+      const legalMovesForPiece = allLegalMoves ? allLegalMoves[positionKey] : [];
       setSelectedPiece(piece);
-      setLegalMoves(legalMoves);
+      setLegalMoves(legalMovesForPiece);
       redrawBoard(canvas, board, boardSize, tileSize, isFlipped);
-      drawLegalMoves(legalMoves, tileSize, ctx, red, boardSize, isFlipped);
-    } else if (selectedPiece) {
-      let { newBoard, isPositionFound } = move(ctx, selectedPiece, { col, row }, board, legalMoves);
+      drawLegalMoves(legalMovesForPiece, tileSize, ctx, red, boardSize, isFlipped);
+    }
+    // Else if a piece is already selected, attempt a move.
+    else if (selectedPiece) {
+      const { newBoard, isPositionFound } = move(
+        ctx,
+        selectedPiece,
+        { col, row },
+        board,
+        legalMoves
+      );
       if (isPositionFound) {
+        // Capture the mover's colour before toggling.
+        const mover = playerTurn;
+        const nextTurn = mover === "white" ? "black" : "white";
         setBoard(newBoard);
+        setPlayerTurn(nextTurn);
+        // Send the move using the mover's colour.
+        handleSendMove(newBoard, mover);
       }
     }
   };
 
-  async function handleSendMove(nextTurn) {
+  // ── SEND MOVE FUNCTION ─────────────────────────────────────────────
+  async function handleSendMove(updatedBoard, mover) {
     try {
-      let serialisedBoard = serialiseBoard(board)
-      const response = await sendMove(playerTurn, gameCode, serialiseBoard);
-      if (response.success){
-        // Wait for the opponent to make a move
-        setIsWaitingForOpponent(true)
-      }
-      else{
-        // If sending the move failed reset to the last previous state
-        let previousBoard = deserialiseBoard(serialisedBoard)
-        setBoard(previousBoard)
-        // Swap whos turn it is  
-        setPlayerTurn(nextTurn == "white" ? "black" : "white")
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext("2d");
+      const serialisedBoard = serialiseBoard(updatedBoard);
+      const response = await sendMove(mover, gameCode, serialisedBoard);
+      if (response.success) {
+        // Move sent successfully; wait for the opponent's move.
+        setIsWaitingForOpponent(true);
+        console.log("Waiting for opponent...");
+      } else {
+        // Sending move failed; revert board and reset turn.
+        const previousBoard = deserialiseBoard(serialisedBoard, boardSize, ctx);
+        setBoard(previousBoard);
+        setPlayerTurn(mover); // Revert turn back to mover.
       }
     } catch (error) {
       console.error("Send move error:", error.message);
       alert(error.message);
     }
-  };
+  }
 
   return (
     <div className="bg-gray-900 text-white h-screen flex flex-col items-center justify-center">
@@ -166,11 +181,10 @@ function App({ preventFlipping, multiplayer }) {
           ref={canvasRef}
           width={tileSize * boardSize}
           height={tileSize * boardSize}
-          onMouseDown={(event) => selectPiece(event, tileSize, board)}
+          onMouseDown={selectPiece}
         ></canvas>
       </div>
 
-      {/* If we’re waiting for opponent, show a “waiting” message */}
       {multiplayer && isWaitingForOpponent && (
         <div className="mt-4 text-lg font-semibold text-red-400">Waiting for opponent...</div>
       )}

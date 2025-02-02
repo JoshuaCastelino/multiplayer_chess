@@ -32,6 +32,7 @@ public class GameHub : Hub
 
     public async Task SendMove(string playerTurn, string connectionId, string code, string board)
     {
+        Console.WriteLine($"{playerTurn}, {connectionId}, {code}, {board}");
         // Attempt to retrieve the game state using the provided code
         bool foundGameState = codeToGameState.TryGetValue(code, out GameState? currentGameState);
 
@@ -93,7 +94,7 @@ public class GameHub : Hub
                 Message = "Invalid game code.",
                 IsInvalidCode = true
             };
-            await Clients.Client(connectionId).SendAsync("GameResponse", response);
+            await Clients.Client(connectionId).SendAsync("JoinGameResponse", response);
             return;
         }
 
@@ -107,7 +108,7 @@ public class GameHub : Hub
                 Message = "This game is already full.",
                 IsGameFull = true
             };
-            await Clients.Client(connectionId).SendAsync("GameResponse", response);
+            await Clients.Client(connectionId).SendAsync("JoinGameResponse", response);
             return;
         }
 
@@ -121,8 +122,8 @@ public class GameHub : Hub
             Message = "You have successfully joined the game."
         };
 
-        await Clients.Client(connectionId).SendAsync("GameResponse", successResponse);
-        await Clients.Client(whiteConnectionID).SendAsync("ReceiveMessage", successResponse);
+        await Clients.Client(connectionId).SendAsync("JoinGameResponse", successResponse);
+        await Clients.Client(whiteConnectionID).SendAsync("BlackJoined", successResponse);
     }
 
 

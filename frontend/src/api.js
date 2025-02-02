@@ -92,7 +92,7 @@ export const sendMove = async (playerTurn, code, board) => {
       // Handler for the server's response
       const handleMoveResponse = (response) => {
         // Unsubscribe from the event once we receive a response
-        connection.off("MoveMade", handleMoveResponse);
+        connection.off("ReceiveMessage", handleMoveResponse);
 
         if (response.success) {
           resolve(response);
@@ -101,17 +101,15 @@ export const sendMove = async (playerTurn, code, board) => {
         }
       };
 
-      // Listen for the server's response event (e.g., "ReceiveMessage")
-      connection.on("MoveMade", handleMoveResponse);
+      connection.on("ReceiveMessage", handleMoveResponse);
 
       await connection.invoke("SendMove", playerTurn, connectionId, code, board);
     } else {
       console.error("SignalR not connected");
       reject({
         success: false,
-        message: "Not connected to SignalR"
+        message: "Not connected to SignalR",
       });
     }
   });
 };
-

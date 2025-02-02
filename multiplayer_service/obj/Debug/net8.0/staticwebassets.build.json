@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "NG+t7Jcn1emGKCMuB08mNK0xqDJxbK2E7bgHlVje83I=",
+  "Source": "multiplayer_service",
+  "BasePath": "_content/multiplayer_service",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}
