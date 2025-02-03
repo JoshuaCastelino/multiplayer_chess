@@ -206,7 +206,6 @@ return (
       <h1 className="text-4xl font-bold">NotChess.com</h1>
     </button>
 
-    {/* Wrap your game content in a relative container */}
     <div className="relative">
       <div className="bg-gray-900">
         <canvas

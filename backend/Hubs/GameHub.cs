@@ -113,9 +113,6 @@ public class GameHub : Hub
         await Clients.Client(whiteConnectionId).SendAsync("BlackJoined", successResponse);
     }
 
-    /// <summary>
-    /// Helper method to send an error response to the client.
-    /// </summary>
     private async Task SendErrorResponse(string connectionId, string message, bool isGameFull = false, bool isInvalidCode = false)
     {
         var response = new GameResponse
