@@ -17,6 +17,7 @@ import {
   checkGameEndCondition,
 } from "./utils/Render";
 import { deserialiseBoard, serialiseBoard } from "./utils/apiUtils";
+import CheckmateGraphic from "./CheckmateGraphic";
 
 function App({ preventFlipping, multiplayer }) {
   const canvasRef = useRef(null);
@@ -35,6 +36,8 @@ function App({ preventFlipping, multiplayer }) {
   const [allLegalMoves, setAllLegalMoves] = useState(null);
   const [colourThreats, setColourThreats] = useState(false);
   const [isWaitingForOpponent, setIsWaitingForOpponent] = useState(multiplayer);
+  const [gameEnded, setGameEnded] = useState(false);
+  const [endMessage, setEndMessage] = useState("");
 
   const handleBeforeUnload = () => {
     if (connection && connection.state === "Connected") {
@@ -104,11 +107,25 @@ function App({ preventFlipping, multiplayer }) {
     const { movesByPosition, endConditions } = king
       ? generateAllLegalMoves(board, king)
       : { movesByPosition: {}, endConditions: {} };
+    const { checked, checkmated, stalemated } = endConditions;
+    if (checkmated) {
+      // Determine the winner: if the current player's move resulted in a checkmate,
+      const winner = playerTurn === "white" ? "Black" : "White";
+      setEndMessage(`Checkmate! ${winner} wins!`);
+      setGameEnded(true);
+    } else if (stalemated) {
+      setEndMessage("Stalemate!");
+      setGameEnded(true);
+    }
     setAllLegalMoves(movesByPosition);
     checkGameEndCondition(ctx, king, endConditions, isFlipped, playerTurn, tileSize, boardSize);
     setLegalMoves([]);
     setSelectedPiece(undefined);
   }, [board, colourThreats, playerTurn, kings]);
+
+  const restartHandler = () => {
+    window.location.reload();
+  };
 
   // ── LOCAL MOVE HANDLER ──────────────────────────────────────────────
   const selectPiece = (e) => {
@@ -178,18 +195,19 @@ function App({ preventFlipping, multiplayer }) {
     handleBeforeUnload();
     navigate("/");
   }
+return (
+  <div className="bg-gray-900 text-white h-screen flex flex-col items-center justify-center">
+    <button
+      className="flex items-center justify-center space-x-4 mb-12 bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 rounded-lg shadow-md transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-gray-600 focus:ring-opacity-50"
+      style={{ width: tileSize * boardSize + 40 }}
+      onClick={onBackButton}
+    >
+      <img src={whiteQueen} alt="White Queen" className="w-12 h-12" />
+      <h1 className="text-4xl font-bold">NotChess.com</h1>
+    </button>
 
-  return (
-    <div className="bg-gray-900 text-white h-screen flex flex-col items-center justify-center">
-      <button
-        className="flex items-center justify-center space-x-4 mb-12 bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 rounded-lg shadow-md transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-gray-600 focus:ring-opacity-50"
-        style={{ width: tileSize * boardSize + 40 }}
-        onClick={() => onBackButton()}
-      >
-        <img src={whiteQueen} alt="White Queen" className="w-12 h-12" />
-        <h1 className="text-4xl font-bold">NotChess.com</h1>
-      </button>
-
+    {/* Wrap your game content in a relative container */}
+    <div className="relative">
       <div className="bg-gray-900">
         <canvas
           className="bg-transparent"
@@ -200,32 +218,45 @@ function App({ preventFlipping, multiplayer }) {
         ></canvas>
       </div>
 
-      {multiplayer &&
-        (isWaitingForOpponent ? (
-          <div className="mt-4 text-lg font-semibold text-red-400">Waiting for opponent...</div>
-        ) : (
-          <div className="mt-4 text-lg font-semibold text-green-400">Your move!</div>
-        ))}
-
-      {gameCode ? (
-        <div className="mt-4 text-lg font-semibold">
-          Game Code: <span className="text-blue-400">{gameCode}</span>
-        </div>
-      ) : (
-        <button
-          className={`mt-4 py-3 px-8 rounded-lg shadow-md font-bold transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 ${
-            colourThreats
-              ? "bg-red-600 hover:bg-red-700 focus:ring-red-500"
-              : "bg-green-600 hover:bg-green-700 focus:ring-green-500"
-          }`}
-          style={{ width: tileSize * boardSize + 40 }}
-          onClick={() => setColourThreats((prev) => !prev)}
-        >
-          {colourThreats ? "Disable Threat Colouring" : "Enable Threat Colouring"}
-        </button>
+      {gameEnded && (
+        <CheckmateGraphic message={endMessage} onRestart={restartHandler} />
       )}
     </div>
-  );
-}
 
+    {multiplayer &&
+      (isWaitingForOpponent ? (
+        <div className="mt-4 text-lg font-semibold text-red-400">
+          Waiting for opponent...
+        </div>
+      ) : (
+        <div className="mt-4 text-lg font-semibold text-green-400">
+          Your move!
+        </div>
+      ))}
+
+    {gameCode && (
+      <div className="mt-4 text-lg font-semibold">
+        Game Code: <span className="text-blue-400">{gameCode}</span>
+      </div>
+    )}
+
+    {!gameCode && (
+      <button
+        className={`mt-4 py-3 px-8 rounded-lg shadow-md font-bold transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 ${
+          colourThreats
+            ? "bg-red-600 hover:bg-red-700 focus:ring-red-500"
+            : "bg-green-600 hover:bg-green-700 focus:ring-green-500"
+        }`}
+        style={{ width: tileSize * boardSize + 40 }}
+        onClick={() => setColourThreats((prev) => !prev)}
+      >
+        {colourThreats
+          ? "Disable Threat Colouring"
+          : "Enable Threat Colouring"}
+      </button>
+    )}
+  </div>
+);
+
+}
 export default App;

@@ -179,11 +179,8 @@ export function renderThreatMaps(board, king, ctx, tileSize, red, isFlipped, blu
   colourThreatMap(ctx, tileSize, newThreatMapBlack, blue, boardSize, isFlipped);
 }
 
-export function checkGameEndCondition(ctx, king, endConditons, isFlipped, nextTurn, tileSize, boardSize) {
-  const checked = endConditons["checked"]
-  const checkmated = endConditons["checkmated"]
-  const stalemated = endConditons["stalemated"]
-  
+export function checkGameEndCondition(ctx, king, endConditions, isFlipped, nextTurn, tileSize, boardSize) {
+  const { checked, checkmated, stalemated } = endConditions;
   if (checked) {
     colourCheck(ctx, tileSize, king, boardSize, isFlipped);
     console.log(`Check true but checkmated ${checkmated}`);
