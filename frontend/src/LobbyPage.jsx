@@ -20,7 +20,9 @@ function LobbyPage() {
     // Need to check if this game code is in use
     const gameCode = generateGameCode(8);
     createGame(gameCode);
-    navigate(`/multiplayer/?code=${gameCode}`);
+    navigate(`/multiplayer`, {
+      state: { colour: "white", gameCode },
+    });
   }
 
   const handleJoinGame = async (event) => {
@@ -30,7 +32,9 @@ function LobbyPage() {
     try {
       const response = await joinGame(gameCode);
       if (response.success) {
-        navigate(`/multiplayer/?code=${gameCode}`);
+        navigate(`/multiplayer`, {
+          state: { colour: "black", gameCode },
+        });
         console.log("navigating");
       } else {
         console.error("Failed to join game:", response.message);

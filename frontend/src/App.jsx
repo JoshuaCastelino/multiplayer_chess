@@ -23,15 +23,18 @@ import {
 } from "./utils/Render";
 import { deserialiseBoard, serialiseBoard } from "./utils/apiUtils";
 import CheckmateGraphic from "./CheckmateGraphic";
+import { useLocation } from 'react-router-dom';
 
 function App({ preventFlipping, multiplayer }) {
   const canvasRef = useRef(null);
   const navigate = useNavigate();
+  
   const tileSize = 80;
   const boardSize = 8;
   const red = "rgba(255, 0, 0, 0.5)";
   const blue = "rgba(0, 50, 255, 0.5)";
-  const gameCode = new URLSearchParams(location.search).get("code");
+  const location = useLocation();
+  const { colour, gameCode } = location.state || {};
 
   const [board, setBoard] = useState([]);
   const [selectedPiece, setSelectedPiece] = useState(undefined);
@@ -61,6 +64,8 @@ function App({ preventFlipping, multiplayer }) {
     const { board: initBoard, blackKing, whiteKing } = initialise(ctx, boardSize);
     setBoard(initBoard);
     setKings({ white: whiteKing, black: blackKing });
+    console.log("PROPS:", preventFlipping, multiplayer, colour)
+
 
     const handleMoveMade = (gameState) => {
       try {
@@ -102,7 +107,7 @@ function App({ preventFlipping, multiplayer }) {
     const canvas = canvasRef.current;
     if (!board.length || !canvas) return;
     const ctx = canvas.getContext("2d");
-    const isFlipped = playerTurn === "black" && preventFlipping;
+    const isFlipped = playerTurn === "black" && preventFlipping || colour == "black" && multiplayer;
     // Use the current player's king for rendering legal moves/threat maps.
     const king = kings[playerTurn];
     redrawBoard(canvas, board, boardSize, tileSize, isFlipped);
@@ -136,7 +141,7 @@ function App({ preventFlipping, multiplayer }) {
   const selectPiece = (e) => {
     if (multiplayer && isWaitingForOpponent) return;
 
-    const isFlipped = playerTurn === "black" && preventFlipping;
+    const isFlipped = playerTurn === "black" && preventFlipping || colour == "black" && multiplayer;
     const { row, col } = pointToCoordinate(canvasRef, e, tileSize, isFlipped);
     if (!isInBounds(row, col, boardSize)) return;
     const canvas = canvasRef.current;
