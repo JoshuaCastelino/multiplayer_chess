@@ -9,7 +9,6 @@ using System.Collections.Concurrent;
 
 public class GameHub : Hub
 {
-    // Use readonly static dictionaries for game state and user connections.
     private static readonly ConcurrentDictionary<string, GameState> CodeToGameState = new ConcurrentDictionary<string, GameState>();
     private static readonly ConcurrentDictionary<string, string> UserConnections = new ConcurrentDictionary<string, string>();
 
@@ -36,7 +35,7 @@ public class GameHub : Hub
         return base.OnDisconnectedAsync(exception);
     }
 
-    public async Task SendMove(string playerTurn, string connectionId, string code, string board)
+    public async Task SendMove(string connectionId, string playerTurn, string code, string board)
     {
         Console.WriteLine($"{playerTurn}, {connectionId}, {code}, {board}");
 
@@ -62,7 +61,7 @@ public class GameHub : Hub
         };
 
         // Notify the sender of success.
-        await Clients.Client(connectionId).SendAsync("ReceiveMessage", response);
+        await Clients.Client(connectionId).SendAsync("SendMoveResponse", response);
 
         // Notify the opponent (if connected) about the move.
         if (!string.IsNullOrEmpty(targetConnection))
@@ -116,6 +115,23 @@ public class GameHub : Hub
         await Clients.Client(connectionId).SendAsync("JoinGameResponse", successResponse);
         await Clients.Client(whiteConnectionId).SendAsync("BlackJoined", successResponse);
     }
+
+    // private async Task Disconnected(string connectionId, string gameCode){
+    //     if (!CodeToGameState.TryGetValue(gameCode, out var disconnectedGame)){
+    //         string whiteConnectionId = disconnectedGame.WhiteConnectionID;
+    //         string blackConnectionId = disconnectedGame.BlackConnectionID;
+
+    //         string opponentConnectionID = connectionId == whiteConnectionId ? blackConnectionId : whiteConnectionId;
+
+    //         CodeToGameState.TryRemove(gameCode, out disconnectedGameState);     
+    //         var successResponse = new GameResponse
+    //             {
+    //                 Success = true,
+    //                 Message = "Your opponent has resigned"
+    //             };
+    //         await Clients.Client(opponentConnectionID).SendAsync("OpponentDisconnected", successResponse);
+    //     }
+    // }
 
     private async Task SendErrorResponse(string connectionId, string message, bool isGameFull = false, bool isInvalidCode = false)
     {

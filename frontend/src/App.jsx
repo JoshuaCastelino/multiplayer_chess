@@ -56,6 +56,10 @@ function App({ preventFlipping, multiplayer }) {
     }
   };
 
+  const handleOpponentDisconected = () => {
+    console.log("The opponent has disconnected")
+  }
+
   // ── REMOTE MOVE HANDLER ─────────────────────────────────────────
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -88,6 +92,7 @@ function App({ preventFlipping, multiplayer }) {
     if (multiplayer) {
       connection.on("BlackJoined", (res) => setIsWaitingForOpponent(!res.success));
       connection.on("MoveMade", handleMoveMade);
+      connection.on("OpponentDisconnected", handleOpponentDisconected);
       window.addEventListener("beforeunload", handleBeforeUnload);
     }
 
@@ -95,6 +100,7 @@ function App({ preventFlipping, multiplayer }) {
       if (multiplayer) {
         connection.off("BlackJoined", (res) => setIsWaitingForOpponent(!res.success));
         connection.off("MoveMade", handleMoveMade);
+        connection.on("OpponentDisconnected", handleOpponentDisconected);
         window.removeEventListener("beforeunload", handleBeforeUnload);
       }
     };
