@@ -1,3 +1,10 @@
+/*
+Contains helper functions associated with the API. In this case, to efficiently send the board and store it in the backend, the
+board is first encoded as a string which then can be decoded back into a 2d array of objects. 
+
+I regret this design choice, and wish I had though ahead about how best to store the board state.
+*/
+
 import Bishop from "../pieces/bishop";
 import King from "../pieces/king";
 import Knight from "../pieces/knight";

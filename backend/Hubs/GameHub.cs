@@ -1,3 +1,7 @@
+/*
+Defines the API endpoints for my chess application
+*/
+
 using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Threading.Tasks;

@@ -1,6 +1,5 @@
 /*
-Contains rendering related functionality, e.g. drawing the board, or converting 
-a click into a coordinate on the board
+Contains rendering related functionality, e.g. drawing the board, colouring when the king is in check etc.
 */
 
 import { updateThreatMaps } from "./Engine";

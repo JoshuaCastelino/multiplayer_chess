@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+/*
+Page rendered after clicking on multiplayer button.
+
+Starts the connection with the backend and handles game creation and game joining logic.
+*/
+
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import whiteQueen from "./assets/white_queen.svg";
 import { startConnection, createGame, joinGame } from "./api";

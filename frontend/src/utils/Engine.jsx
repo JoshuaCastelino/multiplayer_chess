@@ -1,6 +1,5 @@
 /*
-Contains functionality surrounding intiialising the game, moving pieces, 
-as well as utility functions that are required to compute legal moves
+Contains functionality surrounding intiialising the game, moving pieces, as well as utility functions that are required to compute legal moves
 */
 
 import Pawn from "../pieces/pawn";

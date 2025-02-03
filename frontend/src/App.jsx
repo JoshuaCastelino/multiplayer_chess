@@ -1,3 +1,8 @@
+/*
+This file corresponds to the actual chess game itself. It makes use of the API calls, classes, and utilities defined in other files
+to render the current state of the board as well as handle the selection of pieces on the board.
+*/
+
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import whiteQueen from "./assets/white_queen.svg";
@@ -195,6 +200,7 @@ function App({ preventFlipping, multiplayer }) {
     handleBeforeUnload();
     navigate("/");
   }
+
 return (
   <div className="bg-gray-900 text-white h-screen flex flex-col items-center justify-center">
     <button

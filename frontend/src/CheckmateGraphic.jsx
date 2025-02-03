@@ -1,3 +1,6 @@
+/*
+The graphic that is shown when the game ends, not just checkmate as this will render when the enemy is stalemated too.
+*/
 import React from "react";
 
 const CheckmateGraphic = ({ message, onRestart }) => {

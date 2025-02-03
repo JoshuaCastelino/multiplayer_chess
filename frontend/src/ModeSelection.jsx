@@ -1,3 +1,15 @@
+/*
+The entry point for the application, allows the user to toggle between 1 of 3 modes.
+
+1. Single player
+- Normal chess, the board does not flip
+- Scope to add a simple bot in the future
+2. Pass and play
+- Intended for local multiplayer, the board flips to render from the perspective of the colour playing
+3. Multiplayer
+- Currently limited to local machine
+*/
+
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import whiteQueen from "./assets/white_queen.svg";

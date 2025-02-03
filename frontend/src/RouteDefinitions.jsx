@@ -1,3 +1,7 @@
+/*
+Pretty self explanatory, defines paths and which pages they render
+*/
+
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import ModeSelection from "./ModeSelection";
