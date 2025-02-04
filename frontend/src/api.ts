@@ -108,6 +108,5 @@ export function joinGame(code: string, timeout?: number) {
 // }
 
 export function sendMove(playerTurn: any, code: string, board: any, timeout?: number) {
-  const connectionId = connection.connectionId;
   return invokeWithResponse("SendMove", "SendMoveResponse", [playerTurn, code, board], timeout);
 }
