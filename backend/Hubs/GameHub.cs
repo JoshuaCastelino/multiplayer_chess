@@ -116,22 +116,22 @@ public class GameHub : Hub
         await Clients.Client(whiteConnectionId).SendAsync("BlackJoined", successResponse);
     }
 
-    // private async Task Disconnected(string connectionId, string gameCode){
-    //     if (!CodeToGameState.TryGetValue(gameCode, out var disconnectedGame)){
-    //         string whiteConnectionId = disconnectedGame.WhiteConnectionID;
-    //         string blackConnectionId = disconnectedGame.BlackConnectionID;
+    public async Task DisconnectGame(string connectionId, string gameCode){
+        if (CodeToGameState.TryGetValue(gameCode, out var disconnectedGame)){
+            string whiteConnectionId = disconnectedGame.WhiteConnectionID;
+            string blackConnectionId = disconnectedGame.BlackConnectionID;
 
-    //         string opponentConnectionID = connectionId == whiteConnectionId ? blackConnectionId : whiteConnectionId;
+            string opponentConnectionID = connectionId == whiteConnectionId ? blackConnectionId : whiteConnectionId;
 
-    //         CodeToGameState.TryRemove(gameCode, out disconnectedGameState);     
-    //         var successResponse = new GameResponse
-    //             {
-    //                 Success = true,
-    //                 Message = "Your opponent has resigned"
-    //             };
-    //         await Clients.Client(opponentConnectionID).SendAsync("OpponentDisconnected", successResponse);
-    //     }
-    // }
+            CodeToGameState.TryRemove(gameCode, out var disconnectedGameState);     
+            var successResponse = new GameResponse
+                {
+                    Success = true,
+                    Message = "Your opponent has resigned"
+                };
+            await Clients.Client(opponentConnectionID).SendAsync("OpponentDisconnected", successResponse);
+        }
+    }
 
     private async Task SendErrorResponse(string connectionId, string message, bool isGameFull = false, bool isInvalidCode = false)
     {

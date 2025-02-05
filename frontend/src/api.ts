@@ -103,9 +103,9 @@ export function joinGame(code: string, timeout?: number) {
   return invokeWithResponse("JoinGame", "JoinGameResponse", [code], timeout);
 }
 
-// export function disconnectGame(code: string, timeout?: number) {
-//   return invokeWithResponse("DisconnectGame", "DisconnectGameResponse", [code], timeout);
-// }
+export function disconnectGame(code: string, timeout?: number) {
+  return invokeWithResponse("DisconnectGame", "DisconnectGameResponse", [code], timeout);
+}
 
 export function sendMove(playerTurn: any, code: string, board: any, timeout?: number) {
   return invokeWithResponse("SendMove", "SendMoveResponse", [playerTurn, code, board], timeout);
