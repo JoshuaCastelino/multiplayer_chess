@@ -3,8 +3,6 @@ Defines the API endpoints for my chess application
 */
 
 using Microsoft.AspNetCore.SignalR;
-using System;
-using System.Threading.Tasks;
 using System.Collections.Concurrent;
 
 public class GameHub : Hub
