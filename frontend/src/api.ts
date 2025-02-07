@@ -1,6 +1,6 @@
 import { HubConnectionBuilder, HubConnectionState } from "@microsoft/signalr";
 export let connection = new HubConnectionBuilder()
-  .withUrl("https://13.61.19.108:80/gamehub")
+  .withUrl("http://13.61.19.108:80/gamehub")
   .withAutomaticReconnect()
   .build();
 
