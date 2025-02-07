@@ -1,6 +1,6 @@
 import { HubConnectionBuilder, HubConnectionState } from "@microsoft/signalr";
 export let connection = new HubConnectionBuilder()
-  .withUrl("http://localhost:5150/gamehub")
+  .withUrl("https://13.61.19.108:5150/gamehub")
   .withAutomaticReconnect()
   .build();
 
@@ -18,14 +18,14 @@ export async function startConnection() {
     }
   }
 
-  if (!connection['onCloseRegistered']) {
+  if (!connection["onCloseRegistered"]) {
     connection.onclose(async () => {
       console.warn("Disconnected from server!");
       alert("Connection lost! Trying to reconnect...");
       await reconnect();
     });
     // Use a custom flag to prevent duplicate registrations.
-    connection['onCloseRegistered'] = true;
+    connection["onCloseRegistered"] = true;
   }
 }
 
@@ -84,7 +84,6 @@ function invokeWithResponse<T>(
     }, timeout);
   });
 }
-
 
 // Create a game without expecting an immediate response event.
 export async function createGame(code: string) {
