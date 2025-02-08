@@ -1,6 +1,6 @@
 import { HubConnectionBuilder, HubConnectionState } from "@microsoft/signalr";
 export let connection = new HubConnectionBuilder()
-  .withUrl("https://ec2-13-61-19-108.eu-north-1.compute.amazonaws.com:443/gamehub")
+  .withUrl("https://api.joshuacastelino.com:443/gamehub")
   .withAutomaticReconnect()
   .build();
 
