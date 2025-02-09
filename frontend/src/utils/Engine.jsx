@@ -161,9 +161,9 @@ export function generateAllLegalMoves(board, king) {
   }
 
   const checkmated = checked && stalemated;
-  const endConditions = {checked, checkmated, stalemated}
+  const endConditions = { checked, checkmated, stalemated };
 
-  return { movesByPosition, endConditions};
+  return { movesByPosition, endConditions };
 }
 
 export function isPiecePinned(king, curPiece, board, curRow, curCol, newRow, newCol) {
@@ -244,7 +244,7 @@ export function findKing(board, color) {
     for (const piece of row) {
       if (piece === 0) continue;
 
-      if (piece.type === "King" && piece.colour === color) {
+      if (piece.strRepresentation === "K" && piece.colour === color) {
         return piece;
       }
     }

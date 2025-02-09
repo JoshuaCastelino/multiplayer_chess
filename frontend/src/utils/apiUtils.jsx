@@ -28,10 +28,6 @@ export function serialiseBoard(board) {
 }
 
 export function deserialiseBoard(serialisedBoard, boardSize, ctx) {
-  console.log("----------------");
-  console.log(serialisedBoard);
-  console.log(boardSize);
-
   const newBoard = [];
   // Loop over each row
   for (let rowIndex = 0; rowIndex < boardSize; rowIndex++) {
@@ -79,6 +75,5 @@ export function deserialiseBoard(serialisedBoard, boardSize, ctx) {
     }
     newBoard.push(row);
   }
-  console.log("New board: ", newBoard);
   return newBoard;
 }

@@ -35,7 +35,6 @@ function LobbyPage() {
         navigate(`/multiplayer`, {
           state: { colour: "black", gameCode },
         });
-        console.log("navigating");
       } else {
         console.error("Failed to join game:", response.message);
         alert(response.message);

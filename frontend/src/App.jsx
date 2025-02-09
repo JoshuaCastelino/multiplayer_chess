@@ -13,6 +13,7 @@ import {
   move,
   generateAllLegalMoves,
   generateThreatMapKey,
+  findKing,
 } from "./utils/Engine";
 import {
   renderThreatMaps,
@@ -66,17 +67,21 @@ function App({ preventFlipping, multiplayer }) {
     const { board: initBoard, blackKing, whiteKing } = initialise(ctx, boardSize);
     setBoard(initBoard);
     setKings({ white: whiteKing, black: blackKing });
-    
 
     const handleMoveMade = (gameState) => {
       try {
         if (gameState.success) {
           const serialisedBoard = gameState.message;
+          const nextTurn = gameState.nextTurn;
           const deserialisedBoard = deserialiseBoard(serialisedBoard, boardSize, ctx);
+          const whiteKing = findKing(deserialisedBoard, "white");
+          const blackKing = findKing(deserialisedBoard, "black");
+          console.log(whiteKing, blackKing, deserialisedBoard);
+          setKings({ white: whiteKing, black: blackKing });
+
           setBoard(deserialisedBoard);
           // Toggle turn for a remote move.
-          setPlayerTurn((prev) => (prev === "white" ? "black" : "white"));
-          setIsWaitingForOpponent(false);
+          setPlayerTurn(nextTurn);
         }
       } catch (error) {
         console.error("Move made error:", error.message);
@@ -128,6 +133,7 @@ function App({ preventFlipping, multiplayer }) {
       setEndMessage("Stalemate!");
       setGameEnded(true);
     }
+
     setAllLegalMoves(movesByPosition);
     checkGameEndCondition(ctx, king, endConditions, isFlipped, playerTurn, tileSize, boardSize);
     setLegalMoves([]);
@@ -140,7 +146,8 @@ function App({ preventFlipping, multiplayer }) {
 
   // ── LOCAL MOVE HANDLER ──────────────────────────────────────────────
   const selectPiece = (e) => {
-    if (multiplayer && isWaitingForOpponent) return;
+    // make sure that it is the players turn
+    if (multiplayer && playerTurn !== colour) return;
 
     const isFlipped =
       (playerTurn === "black" && preventFlipping) || (colour == "black" && multiplayer);
@@ -172,16 +179,19 @@ function App({ preventFlipping, multiplayer }) {
         // Capture the mover's colour before toggling.
         const mover = playerTurn;
         const nextTurn = mover === "white" ? "black" : "white";
-        setBoard(newBoard);
-        setPlayerTurn(nextTurn);
         // Send the move using the mover's colour.
-        if (multiplayer) handleSendMove(newBoard, mover);
+        if (multiplayer) {
+          handleSendMove(newBoard, mover, nextTurn);
+        } else {
+          setBoard(newBoard);
+          setPlayerTurn(nextTurn);
+        }
       }
     }
   };
 
   // ── SEND MOVE FUNCTION ─────────────────────────────────────────────
-  async function handleSendMove(updatedBoard, mover) {
+  async function handleSendMove(updatedBoard, mover, nextTurn) {
     try {
       const canvas = canvasRef.current;
       const ctx = canvas.getContext("2d");
@@ -189,7 +199,8 @@ function App({ preventFlipping, multiplayer }) {
       const response = await sendMove(mover, gameCode, serialisedBoard);
       if (response.success) {
         // Move sent successfully; wait for the opponent's move.
-        setIsWaitingForOpponent(true);
+        setBoard(updatedBoard);
+        setPlayerTurn(nextTurn);
       } else {
         // Sending move failed; revert board and reset turn.
         const previousBoard = deserialiseBoard(serialisedBoard, boardSize, ctx);

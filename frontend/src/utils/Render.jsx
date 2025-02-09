@@ -74,6 +74,56 @@ export function redrawBoard(canvas, board, boardSize, tileSize, isFlipped) {
   }
 }
 
+export function prettyPrintBoard(board) {
+  // Number of rows/columns
+  const rowCount = board.length;
+  if (rowCount === 0) {
+    console.log("Board is empty.");
+    return;
+  }
+  const colCount = board[0].length;
+
+  // Width (in characters) of each cell
+  const cellWidth = 4;
+
+  // Function to build a horizontal border line, e.g. +----+----+----+
+  function buildBorder() {
+    let line = "+";
+    for (let i = 0; i < colCount; i++) {
+      line += "-".repeat(cellWidth) + "+";
+    }
+    return line;
+  }
+
+  // Helper to get cell text: e.g. "bB" or "." if empty
+  function getCellText(cell) {
+    if (!cell) return ".";
+    const colorPrefix = cell.colour === "white" ? "w" : "b";
+    return colorPrefix + (cell.strRepresentation || "?");
+  }
+
+  const topBorder = buildBorder();
+  let output = topBorder + "\n";
+
+  // For each row, build something like: | bB  | .   | wQ  | ...
+  for (let row = 0; row < rowCount; row++) {
+    let rowString = "";
+    for (let col = 0; col < colCount; col++) {
+      const cell = board[row][col];
+      const text = getCellText(cell);
+      // Pad text to cellWidth and wrap in "|"
+      rowString += "|" + text.padEnd(cellWidth);
+    }
+    // Close final cell
+    rowString += "|\n";
+
+    // Add row string + border
+    output += rowString + buildBorder() + "\n";
+  }
+
+  console.log(output);
+}
+
 export function colourThreatMap(ctx, tileSize, threatMap, colour, boardSize, isFlipped) {
   Object.keys(threatMap).forEach((key) => {
     const threats = threatMap[key];
@@ -172,13 +222,21 @@ export async function drawPiece(piece, tileSize, offset = 0, isFlipped = false) 
 }
 
 export function renderThreatMaps(board, king, ctx, tileSize, red, isFlipped, blue) {
-  const boardSize = board.length
+  const boardSize = board.length;
   const { newThreatMapWhite, newThreatMapBlack } = updateThreatMaps(board, boardSize, king);
   colourThreatMap(ctx, tileSize, newThreatMapWhite, red, boardSize, isFlipped);
   colourThreatMap(ctx, tileSize, newThreatMapBlack, blue, boardSize, isFlipped);
 }
 
-export function checkGameEndCondition(ctx, king, endConditions, isFlipped, nextTurn, tileSize, boardSize) {
+export function checkGameEndCondition(
+  ctx,
+  king,
+  endConditions,
+  isFlipped,
+  nextTurn,
+  tileSize,
+  boardSize
+) {
   const { checked, checkmated, stalemated } = endConditions;
   if (checked) {
     colourCheck(ctx, tileSize, king, boardSize, isFlipped);
