@@ -5,7 +5,6 @@ to render the current state of the board as well as handle the selection of piec
 
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import whiteQueen from "./assets/white_queen.svg";
 import { connection, disconnectGame, sendMove } from "./api";
 import {
   initialise,
@@ -23,8 +22,9 @@ import {
   checkGameEndCondition,
 } from "./utils/Render";
 import { deserialiseBoard, serialiseBoard } from "./utils/apiUtils";
-import CheckmateGraphic from "./CheckmateGraphic";
 import { useLocation } from "react-router-dom";
+import whiteQueen from "./assets/white_queen.svg";
+import CheckmateGraphic from "./CheckmateGraphic";
 
 function App({ preventFlipping, multiplayer }) {
   const canvasRef = useRef(null);
@@ -76,9 +76,8 @@ function App({ preventFlipping, multiplayer }) {
           const deserialisedBoard = deserialiseBoard(serialisedBoard, boardSize, ctx);
           const whiteKing = findKing(deserialisedBoard, "white");
           const blackKing = findKing(deserialisedBoard, "black");
-          console.log(whiteKing, blackKing, deserialisedBoard);
           setKings({ white: whiteKing, black: blackKing });
-
+          setIsWaitingForOpponent(false);
           setBoard(deserialisedBoard);
           // Toggle turn for a remote move.
           setPlayerTurn(nextTurn);
@@ -201,6 +200,7 @@ function App({ preventFlipping, multiplayer }) {
         // Move sent successfully; wait for the opponent's move.
         setBoard(updatedBoard);
         setPlayerTurn(nextTurn);
+        setIsWaitingForOpponent(false);
       } else {
         // Sending move failed; revert board and reset turn.
         const previousBoard = deserialiseBoard(serialisedBoard, boardSize, ctx);
@@ -243,12 +243,17 @@ function App({ preventFlipping, multiplayer }) {
         {gameEnded && <CheckmateGraphic message={endMessage} onRestart={restartHandler} />}
       </div>
 
-      {multiplayer &&
-        (isWaitingForOpponent ? (
-          <div className="mt-4 text-lg font-semibold text-red-400">Waiting for opponent...</div>
-        ) : (
-          <div className="mt-4 text-lg font-semibold text-green-400">Your move!</div>
-        ))}
+      {multiplayer && (
+        <div className="mt-4 text-lg font-semibold">
+          {isWaitingForOpponent ? (
+            <span className="text-red-400">Waiting for opponent to join...</span>
+          ) : playerTurn === colour ? (
+            <span className="text-green-400">Your move!</span>
+          ) : (
+            <span className="text-yellow-400">Opponent's turn...</span>
+          )}
+        </div>
+      )}
 
       {gameCode && (
         <div className="mt-4 text-lg font-semibold">
