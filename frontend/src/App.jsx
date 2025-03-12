@@ -25,6 +25,7 @@ import { deserialiseBoard, serialiseBoard } from "./utils/apiUtils";
 import { useLocation } from "react-router-dom";
 import whiteQueen from "./assets/white_queen.svg";
 import CheckmateGraphic from "./CheckmateGraphic";
+import { notInitialized } from "react-redux/es/utils/useSyncExternalStore";
 
 function App({ preventFlipping, multiplayer }) {
   const canvasRef = useRef(null);
@@ -72,15 +73,19 @@ function App({ preventFlipping, multiplayer }) {
       try {
         if (gameState.success) {
           const serialisedBoard = gameState.message;
-          const nextTurn = gameState.nextTurn;
+          // const nextTurn = playerTurn === "white" ? "black" : "white";
+
+          // console.log(gameState, nextTurn);
           const deserialisedBoard = deserialiseBoard(serialisedBoard, boardSize, ctx);
           const whiteKing = findKing(deserialisedBoard, "white");
           const blackKing = findKing(deserialisedBoard, "black");
           setKings({ white: whiteKing, black: blackKing });
           setIsWaitingForOpponent(false);
           setBoard(deserialisedBoard);
+          setPlayerTurn((prev) => (prev === "white" ? "black" : "white"));
+          setIsWaitingForOpponent(false);
           // Toggle turn for a remote move.
-          setPlayerTurn(nextTurn);
+          // setPlayerTurn(nextTurn);
         }
       } catch (error) {
         console.error("Move made error:", error.message);
@@ -146,7 +151,7 @@ function App({ preventFlipping, multiplayer }) {
   // ── LOCAL MOVE HANDLER ──────────────────────────────────────────────
   const selectPiece = (e) => {
     // make sure that it is the players turn
-    if (multiplayer && playerTurn !== colour) return;
+    if (multiplayer && isWaitingForOpponent) return;
 
     const isFlipped =
       (playerTurn === "black" && preventFlipping) || (colour == "black" && multiplayer);
@@ -198,11 +203,13 @@ function App({ preventFlipping, multiplayer }) {
       const response = await sendMove(mover, gameCode, serialisedBoard);
       if (response.success) {
         // Move sent successfully; wait for the opponent's move.
+        console.log("Move sent sucessfully");
         setBoard(updatedBoard);
+        setIsWaitingForOpponent(true);
         setPlayerTurn(nextTurn);
-        setIsWaitingForOpponent(false);
       } else {
         // Sending move failed; revert board and reset turn.
+        console.log("Failed to send move");
         const previousBoard = deserialiseBoard(serialisedBoard, boardSize, ctx);
         setBoard(previousBoard);
         setPlayerTurn(mover); // Revert turn back to mover.
@@ -246,11 +253,9 @@ function App({ preventFlipping, multiplayer }) {
       {multiplayer && (
         <div className="mt-4 text-lg font-semibold">
           {isWaitingForOpponent ? (
-            <span className="text-red-400">Waiting for opponent to join...</span>
-          ) : playerTurn === colour ? (
-            <span className="text-green-400">Your move!</span>
+            <span className="text-red-400">Waiting for opponent</span>
           ) : (
-            <span className="text-yellow-400">Opponent's turn...</span>
+            <span className="text-green-400">Your move!</span>
           )}
         </div>
       )}
