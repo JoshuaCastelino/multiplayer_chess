@@ -2,7 +2,7 @@ const PROD = "https://api.joshuacastelino.com/gamehub";
 const DEV = "http://localhost:5150/gamehub";
 
 import { HubConnectionBuilder, HubConnectionState } from "@microsoft/signalr";
-export let connection = new HubConnectionBuilder().withUrl(DEV).withAutomaticReconnect().build();
+export let connection = new HubConnectionBuilder().withUrl(PROD).withAutomaticReconnect().build();
 
 const DEFAULT_TIMEOUT = 5000;
 
