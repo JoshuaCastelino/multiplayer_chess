@@ -25,7 +25,6 @@ import { deserialiseBoard, serialiseBoard } from "./utils/apiUtils";
 import { useLocation } from "react-router-dom";
 import whiteQueen from "./assets/white_queen.svg";
 import CheckmateGraphic from "./CheckmateGraphic";
-import { notInitialized } from "react-redux/es/utils/useSyncExternalStore";
 
 function App({ preventFlipping, multiplayer }) {
   const canvasRef = useRef(null);
