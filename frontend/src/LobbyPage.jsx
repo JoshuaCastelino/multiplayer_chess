@@ -8,6 +8,7 @@ import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import whiteQueen from "./assets/white_queen.svg";
 import { startConnection, createGame, joinGame } from "./api";
+import Login from "./Login";
 
 function LobbyPage() {
   const navigate = useNavigate();
@@ -87,6 +88,7 @@ function LobbyPage() {
           >
             Join Game
           </button>
+          <Login></Login>
         </form>
       </div>
     </div>
