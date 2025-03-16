@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { GoogleLogin } from "@react-oauth/google";
+import { connection, CheckUserExists, AddUser } from "./api";
 
 // Temporarily storing user information locally, this is not safe and must be changed
 
@@ -34,6 +35,15 @@ function SignIn() {
       googleEmail: decodedPayload.email,
     };
 
+    CheckUserExists(user.googleEmail)
+      .then((response) => {
+        setFinalUsername(response.message);
+      })
+      .catch((error) => {
+        // Handle not found or other failure
+        console.log("User check failed:", error.message);
+      });
+
     // Save user info in localStorage
     localStorage.setItem("userInfo", JSON.stringify(user));
     setUserInfo(user);
@@ -57,6 +67,7 @@ function SignIn() {
     if (!username.trim()) return; // Don't allow blank
     // Save in localStorage
     localStorage.setItem("finalUsername", username);
+    AddUser(userInfo.googleEmail, username);
     setFinalUsername(username);
   };
 
@@ -78,13 +89,13 @@ function SignIn() {
         <div className="space-y-4">
           <p className="text-lg font-semibold">Signed in via Google as {userInfo.googleName}</p>
           <p className="text-sm text-red-400">
-            Please pick a username. <strong>This will be permanent.</strong>
+            <strong>Choose your username: (this will be permanent)</strong>
           </p>
           <input
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            placeholder="Enter your unique username"
+            placeholder="Username:"
             className="w-full px-3 py-2 bg-gray-700 text-white rounded focus:outline-none"
           />
           <button
@@ -95,7 +106,7 @@ function SignIn() {
           </button>
           <button
             onClick={handleSignOut}
-            className="bg-red-600 text-white font-bold py-2 px-4 rounded hover:bg-red-700 w-full"
+            className="bg-orange-600 text-white font-bold py-2 px-4 rounded hover:bg-orange-700 w-full"
           >
             Cancel & Sign Out
           </button>

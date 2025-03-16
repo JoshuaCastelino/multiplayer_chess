@@ -2,7 +2,7 @@ const PROD = "https://api.joshuacastelino.com/gamehub";
 const DEV = "http://localhost:5150/gamehub";
 
 import { HubConnectionBuilder, HubConnectionState } from "@microsoft/signalr";
-export let connection = new HubConnectionBuilder().withUrl(PROD).withAutomaticReconnect().build();
+export let connection = new HubConnectionBuilder().withUrl(DEV).withAutomaticReconnect().build();
 
 const DEFAULT_TIMEOUT = 5000;
 
@@ -108,4 +108,12 @@ export function disconnectGame(code: string, timeout?: number) {
 
 export function sendMove(playerTurn: any, code: string, board: any, timeout?: number) {
   return invokeWithResponse("SendMove", "SendMoveResponse", [playerTurn, code, board], timeout);
+}
+
+export function CheckUserExists(email: string, timeout?: number) {
+  return invokeWithResponse("CheckUserExists", "CheckUserExistsResponse", [email], timeout);
+}
+
+export function AddUser(email: string, username: string, timeout?: number) {
+  return invokeWithResponse("AddUser", "AddUserResponse", [email, username], timeout);
 }

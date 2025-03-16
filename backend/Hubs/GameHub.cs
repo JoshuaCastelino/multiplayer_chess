@@ -4,12 +4,14 @@ Defines the API endpoints for my chess application
 
 using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
+using Npgsql;
+// using var connection = new NpgsqlConnection();
 
 public class GameHub : Hub
 {
     private static readonly ConcurrentDictionary<string, GameState> CodeToGameState = new ConcurrentDictionary<string, GameState>();
     private static readonly ConcurrentDictionary<string, string> UserConnections = new ConcurrentDictionary<string, string>();
-
+    private const string ConnectionString = "Host=localhost;Port=5432;Database=multiplayerchess;Username=root;Password=root;";
     private const string InitialBoard =
         "bRbNbBbQbKbBbNbRb\n" +
         "PbPbPbPbPbPbPbP\n" +
@@ -19,6 +21,7 @@ public class GameHub : Hub
         "0000000000000000\n" +
         "wPwPwPwPwPwPwPwP\n" +
         "wRwNwBwQwKwBwNwR";
+
 
     public override Task OnConnectedAsync()
     {
@@ -68,6 +71,62 @@ public class GameHub : Hub
         }
     }
 
+
+    public async Task CheckUserExists(string connectionID, string email)
+    {
+        Console.WriteLine("checking user exists");
+
+        // Connect to DB
+        using var conn = new NpgsqlConnection(ConnectionString);
+        await conn.OpenAsync();
+
+        // Query for a row that matches this email
+        using var cmd = new NpgsqlCommand("SELECT username FROM users WHERE email = @email LIMIT 1", conn);
+        cmd.Parameters.AddWithValue("email", email);
+
+        var result = await cmd.ExecuteScalarAsync();
+
+        // Build a response object
+        var response = new
+        {
+            success = (result != null),
+            message = (result != null)
+                ? result
+                : "No user registered with that email."
+        };
+
+        // Send it back to the caller
+        await Clients.Client(connectionID).SendAsync("CheckUserExistsResponse", response);
+    }
+
+
+    public async Task AddUser(string connectionID, string email, string username)
+    {
+        // Kind of relies on the fact that the user cannot create a new user name for themselves
+        // Hopes and prayers!
+
+        using var conn = new NpgsqlConnection(ConnectionString);
+        await conn.OpenAsync();
+
+        using var cmd = new NpgsqlCommand(
+            "INSERT INTO users (email, username) VALUES (@email, @username)",
+            conn
+        );
+        cmd.Parameters.AddWithValue("email", email);
+        cmd.Parameters.AddWithValue("username", username);
+        await cmd.ExecuteNonQueryAsync();
+
+        await Clients.Client(connectionID).SendAsync("AddUserResponse", new
+        {
+            Success = true,
+            Message = "User added successfully."
+        });
+    }
+
+
+
+
+
     public async Task CreateGame(string connectionId, string code)
     {
         Console.WriteLine($"Creating Game {connectionId}, {code}");
@@ -114,19 +173,21 @@ public class GameHub : Hub
         await Clients.Client(whiteConnectionId).SendAsync("BlackJoined", successResponse);
     }
 
-    public async Task DisconnectGame(string connectionId, string gameCode){
-        if (CodeToGameState.TryGetValue(gameCode, out var disconnectedGame)){
+    public async Task DisconnectGame(string connectionId, string gameCode)
+    {
+        if (CodeToGameState.TryGetValue(gameCode, out var disconnectedGame))
+        {
             string whiteConnectionId = disconnectedGame.WhiteConnectionID;
             string blackConnectionId = disconnectedGame.BlackConnectionID;
 
             string opponentConnectionID = connectionId == whiteConnectionId ? blackConnectionId : whiteConnectionId;
 
-            CodeToGameState.TryRemove(gameCode, out var disconnectedGameState);     
+            CodeToGameState.TryRemove(gameCode, out var disconnectedGameState);
             var successResponse = new GameResponse
-                {
-                    Success = true,
-                    Message = "Your opponent has resigned"
-                };
+            {
+                Success = true,
+                Message = "Your opponent has resigned"
+            };
             await Clients.Client(opponentConnectionID).SendAsync("OpponentDisconnected", successResponse);
         }
     }
