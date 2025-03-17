@@ -33,8 +33,10 @@ function LobbyPage() {
     try {
       const response = await joinGame(gameCode);
       if (response.success) {
+        console.log(response);
+
         navigate(`/multiplayer`, {
-          state: { colour: "black", gameCode },
+          state: { colour: "black", gameCode, whiteUsername: response.whiteUsername },
         });
       } else {
         console.error("Failed to join game:", response.message);

@@ -166,7 +166,9 @@ public class GameHub : Hub
         var successResponse = new GameResponse
         {
             Success = true,
-            Message = "You have successfully joined the game."
+            Message = "You have successfully joined the game.",
+            BlackUsername = "Guest (Black)",
+            WhiteUsername = "Guest (White)"
         };
 
         await Clients.Client(connectionId).SendAsync("JoinGameResponse", successResponse);
@@ -225,6 +227,9 @@ public class GameResponse
 {
     public bool Success { get; set; }
     public string Message { get; set; } = string.Empty;
+    public string BlackUsername { get; set; } = string.Empty;
+    public string WhiteUsername { get; set; } = string.Empty;
     public bool IsGameFull { get; set; }
     public bool IsInvalidCode { get; set; }
+
 }

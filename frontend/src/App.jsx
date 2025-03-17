@@ -37,7 +37,8 @@ function App({ preventFlipping, multiplayer }) {
   const red = "rgba(255, 0, 0, 0.5)";
   const blue = "rgba(0, 50, 255, 0.5)";
   const location = useLocation();
-  const { colour, gameCode } = location.state || {};
+  const { colour, gameCode, whiteUsername } = location.state || {};
+  const username = localStorage.getItem("finalUsername") ?? "Guest";
 
   const [board, setBoard] = useState([]);
   const [selectedPiece, setSelectedPiece] = useState(undefined);
@@ -49,6 +50,8 @@ function App({ preventFlipping, multiplayer }) {
   const [isWaitingForOpponent, setIsWaitingForOpponent] = useState(multiplayer);
   const [gameEnded, setGameEnded] = useState(false);
   const [endMessage, setEndMessage] = useState("");
+  const [blackUsername, setBlackUsername] = useState("Waiting...");
+  // const [whiteUsername, setWhiteUsername] = useState("Waiting...");
 
   const handleBeforeUnload = () => {
     if (connection && connection.state === "Connected") {
@@ -74,9 +77,6 @@ function App({ preventFlipping, multiplayer }) {
       try {
         if (gameState.success) {
           const serialisedBoard = gameState.message;
-          // const nextTurn = playerTurn === "white" ? "black" : "white";
-
-          // console.log(gameState, nextTurn);
           const deserialisedBoard = deserialiseBoard(serialisedBoard, boardSize, ctx);
           const whiteKing = findKing(deserialisedBoard, "white");
           const blackKing = findKing(deserialisedBoard, "black");
@@ -85,24 +85,30 @@ function App({ preventFlipping, multiplayer }) {
           setBoard(deserialisedBoard);
           setPlayerTurn((prev) => (prev === "white" ? "black" : "white"));
           setIsWaitingForOpponent(false);
-          // Toggle turn for a remote move.
-          // setPlayerTurn(nextTurn);
         }
       } catch (error) {
         console.error("Move made error:", error.message);
         alert(error.message);
       }
     };
+    const handleBlackJoined = (res) => {
+      setIsWaitingForOpponent(!res.success);
+      setBlackUsername(res.blackUsername);
+      // setWhiteUsername(res.whiteUsername);
+      console.log(res);
+    };
+
     if (multiplayer) {
-      connection.on("BlackJoined", (res) => setIsWaitingForOpponent(!res.success));
+      connection.on("BlackJoined", handleBlackJoined);
       connection.on("MoveMade", handleMoveMade);
       connection.on("OpponentDisconnected", handleOpponentDisconected);
       window.addEventListener("beforeunload", handleBeforeUnload);
     }
+    console.log(whiteUsername);
 
     return () => {
       if (multiplayer) {
-        connection.off("BlackJoined", (res) => setIsWaitingForOpponent(!res.success));
+        connection.off("BlackJoined", handleBlackJoined);
         connection.off("MoveMade", handleMoveMade);
         connection.on("OpponentDisconnected", handleOpponentDisconected);
         window.removeEventListener("beforeunload", handleBeforeUnload);
@@ -244,10 +250,23 @@ function App({ preventFlipping, multiplayer }) {
         {multiplayer && (
           <div
             className="absolute top-0 right-0 transform translate-x-[calc(100%+2rem)] flex flex-col justify-between"
-            style={{ height: tileSize * boardSize }}
+            style={{ height: tileSize * boardSize + 40 }}
           >
-            <UserCard color="white" username="Alice" wins={10} />
-            <UserCard color="black" username="Bob" wins={7} />
+            {colour === "white" ? (
+              <>
+                {/* If player is white, then the opponent (black) is on top */}
+                <UserCard color="black" username={blackUsername} wins={7} />
+                {/* The player's white card is at the bottom */}
+                <UserCard color="white" username={username} wins={10} />
+              </>
+            ) : (
+              <>
+                {/* If player is black, then the opponent (white) is on top */}
+                <UserCard color="white" username={whiteUsername} wins={10} />
+                {/* The player's black card is at the bottom */}
+                <UserCard color="black" username={username} wins={7} />
+              </>
+            )}
           </div>
         )}
       </div>
