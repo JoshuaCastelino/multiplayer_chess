@@ -12,6 +12,8 @@ import Login from "./Login";
 
 function LobbyPage() {
   const navigate = useNavigate();
+  // There must be a better way of doing this, probs would have to setup some globl state manager tho (cba)
+  const username = localStorage.getItem("finalUsername");
 
   useEffect(() => {
     startConnection();
@@ -20,7 +22,7 @@ function LobbyPage() {
   async function handleCreateGame() {
     // Need to check if this game code is in use
     const gameCode = generateGameCode(8);
-    createGame(gameCode);
+    createGame(gameCode, username ?? "Guest (White)");
     navigate(`/multiplayer`, {
       state: { colour: "white", gameCode },
     });

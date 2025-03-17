@@ -127,11 +127,11 @@ public class GameHub : Hub
 
 
 
-    public async Task CreateGame(string connectionId, string code)
+    public async Task CreateGame(string connectionId, string code, string username)
     {
-        Console.WriteLine($"Creating Game {connectionId}, {code}");
+        Console.WriteLine($"Creating Game {connectionId}, {code}, {username}");
 
-        // If there are 5 or more games, wipe all existing games.
+        // If there are 5 or more games, wipe all existing games. (What a funny idea)
         if (CodeToGameState.Count >= 5)
         {
             Console.WriteLine("Too many games. Clearing all existing games...");
@@ -139,7 +139,7 @@ public class GameHub : Hub
         }
 
         // Create a new game with the creator's connection as the white player.
-        var gameState = new GameState(whiteConnectionId: connectionId, blackConnectionId: null, boardState: InitialBoard);
+        var gameState = new GameState(whiteConnectionId: connectionId, blackConnectionId: null, boardState: InitialBoard, whiteUsername: username);
         CodeToGameState[code] = gameState;
 
         Console.WriteLine($"Game {code} created successfully.");
@@ -162,13 +162,14 @@ public class GameHub : Hub
         // Set the joining player's connection as the black player.
         joiningGame.BlackConnectionID = connectionId;
         string whiteConnectionId = joiningGame.WhiteConnectionID ?? string.Empty;
-
+        string whiteUsername = joiningGame.WhiteUsername;
+        Console.WriteLine("Joining game " + joiningGame);
         var successResponse = new GameResponse
         {
             Success = true,
             Message = "You have successfully joined the game.",
             BlackUsername = "Guest (Black)",
-            WhiteUsername = "Guest (White)"
+            WhiteUsername = whiteUsername
         };
 
         await Clients.Client(connectionId).SendAsync("JoinGameResponse", successResponse);
@@ -213,12 +214,14 @@ public record GameState
 {
     public string? WhiteConnectionID { get; set; }
     public string? BlackConnectionID { get; set; }
+    public string WhiteUsername { get; set; }
     public string BoardState { get; set; }
 
-    public GameState(string? whiteConnectionId, string? blackConnectionId, string boardState)
+    public GameState(string? whiteConnectionId, string? blackConnectionId, string whiteUsername, string boardState)
     {
         WhiteConnectionID = whiteConnectionId;
         BlackConnectionID = blackConnectionId;
+        WhiteUsername = whiteUsername;
         BoardState = boardState;
     }
 }

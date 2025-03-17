@@ -86,11 +86,11 @@ function invokeWithResponse<T>(
 }
 
 // Create a game without expecting an immediate response event.
-export async function createGame(code: string) {
+export async function createGame(code: string, username: string) {
   await ensureConnected();
   const connectionId = connection.connectionId;
   try {
-    await connection.invoke("CreateGame", connectionId, code);
+    await connection.invoke("CreateGame", connectionId, code, username);
     console.log("CreateGame invoked");
   } catch (error) {
     console.error("Error creating game:", error);
