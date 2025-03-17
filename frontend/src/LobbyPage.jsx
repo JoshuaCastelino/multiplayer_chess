@@ -33,7 +33,7 @@ function LobbyPage() {
     const gameCode = event.target.gameCode.value;
 
     try {
-      const response = await joinGame(gameCode);
+      const response = await joinGame(gameCode, username);
       if (response.success) {
         console.log(response);
 

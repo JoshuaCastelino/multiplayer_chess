@@ -98,8 +98,8 @@ export async function createGame(code: string, username: string) {
   }
 }
 
-export function joinGame(code: string, timeout?: number) {
-  return invokeWithResponse("JoinGame", "JoinGameResponse", [code], timeout);
+export function joinGame(code: string, blackUsername: string, timeout?: number) {
+  return invokeWithResponse("JoinGame", "JoinGameResponse", [code, blackUsername], timeout);
 }
 
 export function disconnectGame(code: string, timeout?: number) {

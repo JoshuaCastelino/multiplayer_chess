@@ -145,7 +145,7 @@ public class GameHub : Hub
         Console.WriteLine($"Game {code} created successfully.");
     }
 
-    public async Task JoinGame(string connectionId, string code)
+    public async Task JoinGame(string connectionId, string code, string blackUsername)
     {
         if (!CodeToGameState.TryGetValue(code, out var joiningGame))
         {
@@ -163,12 +163,13 @@ public class GameHub : Hub
         joiningGame.BlackConnectionID = connectionId;
         string whiteConnectionId = joiningGame.WhiteConnectionID ?? string.Empty;
         string whiteUsername = joiningGame.WhiteUsername;
-        Console.WriteLine("Joining game " + joiningGame);
+        
+        joiningGame.BlackUsername = blackUsername;
         var successResponse = new GameResponse
         {
             Success = true,
             Message = "You have successfully joined the game.",
-            BlackUsername = "Guest (Black)",
+            BlackUsername = blackUsername,
             WhiteUsername = whiteUsername
         };
 
@@ -215,6 +216,7 @@ public record GameState
     public string? WhiteConnectionID { get; set; }
     public string? BlackConnectionID { get; set; }
     public string WhiteUsername { get; set; }
+    public string? BlackUsername { get; set; }
     public string BoardState { get; set; }
 
     public GameState(string? whiteConnectionId, string? blackConnectionId, string whiteUsername, string boardState)
@@ -223,8 +225,10 @@ public record GameState
         BlackConnectionID = blackConnectionId;
         WhiteUsername = whiteUsername;
         BoardState = boardState;
+        BlackUsername = null; // Initially null
     }
 }
+
 
 public class GameResponse
 {

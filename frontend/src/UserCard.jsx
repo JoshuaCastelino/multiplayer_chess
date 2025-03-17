@@ -13,7 +13,7 @@ function UserCard({ color, username, wins = 0 }) {
       </div>
 
       <div>
-        <h3 className="text-lg font-bold">{username}</h3>
+        <h3 className="text-lg font-bold">{username.toUpperCase()}</h3>
         <p className="text-sm">Wins: {wins}</p>
       </div>
     </div>
