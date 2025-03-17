@@ -1,5 +1,12 @@
 CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255) NOT NULL,
-    username VARCHAR(255) NOT NULL,
+    username VARCHAR(255) NOT NULL UNIQUE,
     PRIMARY KEY (email)
+);
+
+CREATE TABLE IF NOT EXISTS versus (
+    gameid SERIAL PRIMARY KEY,
+    white VARCHAR(255) NOT NULL,
+    black VARCHAR(255) NOT NULL,
+    winner VARCHAR(255)
 );

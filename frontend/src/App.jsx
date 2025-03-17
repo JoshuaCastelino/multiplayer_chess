@@ -5,7 +5,7 @@ to render the current state of the board as well as handle the selection of piec
 
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { connection, disconnectGame, sendMove } from "./api";
+import { connection, disconnectGame, sendMove, KingCheckmated } from "./api";
 import {
   initialise,
   isInBounds,
@@ -63,6 +63,11 @@ function App({ preventFlipping, multiplayer }) {
     setEndMessage("Your opponent has resigned");
     setGameEnded(true);
   };
+
+  useEffect(() => {
+    const winner = playerTurn === "white" ? "Black" : "White";
+    console.log("Winner" + winner);
+  }, [gameEnded]);
 
   // ── REMOTE MOVE HANDLER ─────────────────────────────────────────
   useEffect(() => {

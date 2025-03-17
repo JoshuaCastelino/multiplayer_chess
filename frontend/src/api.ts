@@ -98,6 +98,15 @@ export async function createGame(code: string, username: string) {
   }
 }
 
+export async function KingCheckmated(code: string, winningPlayerColor: string) {
+  try {
+    await connection.invoke("KingCheckmated", code, winningPlayerColor);
+    console.log("KingCheckmated called successfully.");
+  } catch (error) {
+    console.error("Error calling KingCheckmated:", error);
+  }
+}
+
 export function joinGame(code: string, blackUsername: string, timeout?: number) {
   return invokeWithResponse("JoinGame", "JoinGameResponse", [code, blackUsername], timeout);
 }

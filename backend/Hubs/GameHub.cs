@@ -163,7 +163,7 @@ public class GameHub : Hub
         joiningGame.BlackConnectionID = connectionId;
         string whiteConnectionId = joiningGame.WhiteConnectionID ?? string.Empty;
         string whiteUsername = joiningGame.WhiteUsername;
-        
+
         joiningGame.BlackUsername = blackUsername;
         var successResponse = new GameResponse
         {
@@ -177,22 +177,103 @@ public class GameHub : Hub
         await Clients.Client(whiteConnectionId).SendAsync("BlackJoined", successResponse);
     }
 
+    public async Task KingCheckmated(string gameCode, string winningPlayerColor)
+    {
+        if (CodeToGameState.TryGetValue(gameCode, out var game))
+        {
+            string winner = winningPlayerColor.Equals("white", StringComparison.OrdinalIgnoreCase)
+                ? game.WhiteUsername
+                : game.BlackUsername ?? "Guest (Black)";
+            
+            await RecordGameResult(game.WhiteUsername, game.BlackUsername ?? "Guest (Black)", winner);
+
+            CodeToGameState.TryRemove(gameCode, out _);
+        }
+    }
+
+    private async Task RecordGameResult(string whiteUsername, string blackUsername, string winner)
+    {
+        using var conn = new NpgsqlConnection(ConnectionString);
+        await conn.OpenAsync();
+
+        using var cmd = new NpgsqlCommand(
+            "INSERT INTO versus (white, black, winner) VALUES (@white, @black, @winner)",
+            conn);
+        cmd.Parameters.AddWithValue("white", whiteUsername);
+        cmd.Parameters.AddWithValue("black", blackUsername);
+        cmd.Parameters.AddWithValue("winner", winner);
+        await cmd.ExecuteNonQueryAsync();
+    }
+
+    // Retrieves the versus history (score) between two players.
+    // The response sends back the number of wins each player has recorded in games against one another.
+    public async Task GetHistory(string connectionId, string player1, string player2)
+    {
+        using var conn = new NpgsqlConnection(ConnectionString);
+        await conn.OpenAsync();
+
+        string query = @"
+            SELECT 
+                COUNT(*) FILTER (WHERE winner = @player1) AS playerOneWins,
+                COUNT(*) FILTER (WHERE winner = @player2) AS playerTwoWins
+            FROM versus 
+            WHERE (white = @player1 AND black = @player2)
+               OR (white = @player2 AND black = @player1);";
+
+        using var cmd = new NpgsqlCommand(query, conn);
+        cmd.Parameters.AddWithValue("player1", player1);
+        cmd.Parameters.AddWithValue("player2", player2);
+
+        using var reader = await cmd.ExecuteReaderAsync();
+        if (await reader.ReadAsync())
+        {
+            int playerOneWins = reader.GetInt32(reader.GetOrdinal("playerOneWins"));
+            int playerTwoWins = reader.GetInt32(reader.GetOrdinal("playerTwoWins"));
+            var response = new
+            {
+                success = true,
+                playerOneWins,
+                playerTwoWins
+            };
+
+            await Clients.Client(connectionId).SendAsync("GetHistoryResponse", response);
+        }
+        else
+        {
+            await Clients.Client(connectionId).SendAsync("GetHistoryResponse", new { success = false, message = "No history found." });
+        }
+    }
+
     public async Task DisconnectGame(string connectionId, string gameCode)
     {
-        if (CodeToGameState.TryGetValue(gameCode, out var disconnectedGame))
+        if (CodeToGameState.TryGetValue(gameCode, out var game))
         {
-            string whiteConnectionId = disconnectedGame.WhiteConnectionID;
-            string blackConnectionId = disconnectedGame.BlackConnectionID;
+            string whiteConnectionId = game.WhiteConnectionID;
+            string blackConnectionId = game.BlackConnectionID;
+            string winner;
 
-            string opponentConnectionID = connectionId == whiteConnectionId ? blackConnectionId : whiteConnectionId;
+            // Determine which player resigned.
+            if (connectionId == whiteConnectionId)
+            {
+                winner = game.BlackUsername;
+            }
+            else
+            {
+                winner = game.WhiteUsername;
+            }
 
-            CodeToGameState.TryRemove(gameCode, out var disconnectedGameState);
+            // Record the result in the versus table.
+            await RecordGameResult(game.WhiteUsername, game.BlackUsername, winner);
+
+            // Notify the opponent that the game ended.
+            string opponentConnectionId = connectionId == whiteConnectionId ? blackConnectionId : whiteConnectionId;
             var successResponse = new GameResponse
             {
                 Success = true,
                 Message = "Your opponent has resigned"
             };
-            await Clients.Client(opponentConnectionID).SendAsync("OpponentDisconnected", successResponse);
+            await Clients.Client(opponentConnectionId).SendAsync("OpponentDisconnected", successResponse);
+            CodeToGameState.TryRemove(gameCode, out _);
         }
     }
 
