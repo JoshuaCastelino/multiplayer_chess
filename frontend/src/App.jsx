@@ -23,8 +23,10 @@ import {
 } from "./utils/Render";
 import { deserialiseBoard, serialiseBoard } from "./utils/apiUtils";
 import { useLocation } from "react-router-dom";
-import whiteQueen from "./assets/white_queen.svg";
 import CheckmateGraphic from "./CheckmateGraphic";
+import BackButton from "./BackButton";
+import UserCard from "./UserCard";
+import GameStatus from "./GameStatus";
 
 function App({ preventFlipping, multiplayer }) {
   const canvasRef = useRef(null);
@@ -226,44 +228,35 @@ function App({ preventFlipping, multiplayer }) {
 
   return (
     <div className="bg-gray-900 text-white h-screen flex flex-col items-center justify-center">
-      <button
-        className="flex items-center justify-center space-x-4 mb-12 bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 rounded-lg shadow-md transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-gray-600 focus:ring-opacity-50"
-        style={{ width: tileSize * boardSize + 40 }}
-        onClick={onBackButton}
-      >
-        <img src={whiteQueen} alt="White Queen" className="w-12 h-12" />
-        <h1 className="text-4xl font-bold">NotChess.com</h1>
-      </button>
+      <BackButton width={tileSize * boardSize + 40} onBackButton={() => onBackButton()} />
 
+      {/* Central board container */}
       <div className="relative">
-        <div className="bg-gray-900">
-          <canvas
-            className="bg-transparent"
-            ref={canvasRef}
-            width={tileSize * boardSize}
-            height={tileSize * boardSize}
-            onMouseDown={selectPiece}
-          ></canvas>
-        </div>
+        <canvas
+          className="bg-transparent"
+          ref={canvasRef}
+          width={tileSize * boardSize + 40}
+          height={tileSize * boardSize + 40}
+          onMouseDown={selectPiece}
+        ></canvas>
 
         {gameEnded && <CheckmateGraphic message={endMessage} onRestart={restartHandler} />}
+        {multiplayer && (
+          <div
+            className="absolute top-0 right-0 transform translate-x-[calc(100%+2rem)] flex flex-col justify-between"
+            style={{ height: tileSize * boardSize }}
+          >
+            <UserCard color="white" username="Alice" wins={10} />
+            <UserCard color="black" username="Bob" wins={7} />
+          </div>
+        )}
       </div>
 
-      {multiplayer && (
-        <div className="mt-4 text-lg font-semibold">
-          {isWaitingForOpponent ? (
-            <span className="text-red-400">Waiting for opponent</span>
-          ) : (
-            <span className="text-green-400">Your move!</span>
-          )}
-        </div>
-      )}
-
-      {gameCode && (
-        <div className="mt-4 text-lg font-semibold">
-          Game Code: <span className="text-blue-400">{gameCode}</span>
-        </div>
-      )}
+      <GameStatus
+        multiplayer={multiplayer}
+        isWaitingForOpponent={isWaitingForOpponent}
+        gameCode={gameCode}
+      />
 
       {!gameCode && (
         <button
