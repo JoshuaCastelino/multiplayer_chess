@@ -37,11 +37,17 @@ function SignIn() {
 
     CheckUserExists(user.googleEmail)
       .then((response) => {
-        setFinalUsername(response.message);
+        if (response.success) {
+          const username = response.message;
+          setFinalUsername(username);
+          localStorage.setItem("finalUsername", username);
+        } else {
+          // If not found, either do nothing or handle differently
+          console.log("User not found:", response.message);
+        }
       })
       .catch((error) => {
-        // Handle not found or other failure
-        console.log("User check failed:", error.message);
+        console.error("User check failed:", error.message);
       });
 
     // Save user info in localStorage
