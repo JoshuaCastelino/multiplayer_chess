@@ -99,7 +99,6 @@ function App({ preventFlipping, multiplayer }) {
     const handleBlackJoined = (res) => {
       setIsWaitingForOpponent(!res.success);
       setBlackUsername(res.blackUsername);
-      // setWhiteUsername(res.whiteUsername);
       console.log(res);
     };
 
@@ -143,6 +142,10 @@ function App({ preventFlipping, multiplayer }) {
     if (checkmated) {
       // Determine the winner: if the current player's move resulted in a checkmate,
       const winner = playerTurn === "white" ? "Black" : "White";
+      // Make sure the checkmate only gets reported once
+      if (colour == "white") {
+        KingCheckmated(gameCode, winner);
+      }
       setEndMessage(`Checkmate! ${winner} wins!`);
       setGameEnded(true);
     } else if (stalemated) {
@@ -233,6 +236,8 @@ function App({ preventFlipping, multiplayer }) {
   }
 
   function onBackButton() {
+    let winner = colour === "white" ? "black" : "white";
+    KingCheckmated(gameCode, winner);
     handleBeforeUnload();
     navigate("/");
   }
