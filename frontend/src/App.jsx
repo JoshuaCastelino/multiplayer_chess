@@ -61,7 +61,9 @@ function App({ preventFlipping, multiplayer }) {
 
   const handleBeforeUnload = () => {
     if (connection && connection.state === "Connected") {
-      KingCheckmated(gameCode, colour);
+      if (colour == "white") {
+        KingCheckmated(gameCode, colour);
+      }
       disconnectGame(gameCode);
     }
   };

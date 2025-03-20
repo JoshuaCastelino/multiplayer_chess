@@ -107,7 +107,6 @@ export function joinGame(code: string, blackUsername: string, timeout?: number) 
 }
 
 export function disconnectGame(code: string, timeout?: number) {
-  console.log("disconnecting game");
   return invokeWithResponse("DisconnectGame", "DisconnectGameResponse", [code], timeout);
 }
 

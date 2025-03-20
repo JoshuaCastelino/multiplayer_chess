@@ -13,7 +13,6 @@ public class GameHub : Hub
 
     public GameHub()
     {
-        // If you’re reading from environment variables, do so here
         var host = Environment.GetEnvironmentVariable("DB_HOST") ?? "localhost";
         var user = Environment.GetEnvironmentVariable("DB_USER") ?? "root";
         var pass = Environment.GetEnvironmentVariable("DB_PASS") ?? "root";
@@ -188,19 +187,29 @@ public class GameHub : Hub
         await Clients.Client(whiteConnectionId).SendAsync("BlackJoined", successResponse);
     }
 
-    public async Task KingCheckmated(string gameCode, string winningPlayerColor)
+    public async Task KingCheckmated(string connectionId, string gameCode, string winningPlayerColor)
     {
         if (CodeToGameState.TryGetValue(gameCode, out var game))
         {
-            string winner = winningPlayerColor.Equals("white", StringComparison.OrdinalIgnoreCase)
-                ? game.WhiteUsername
-                : game.BlackUsername ?? "Guest (Black)";
-            
-            await RecordGameResult(game.WhiteUsername, game.BlackUsername ?? "Guest (Black)", winner);
-
+            if (!string.IsNullOrEmpty(game.WhiteUsername) && !string.IsNullOrEmpty(game.BlackUsername))
+            {
+                string winner = winningPlayerColor.Equals("white", StringComparison.OrdinalIgnoreCase)
+                    ? game.WhiteUsername
+                    : game.BlackUsername ?? "Guest (Black)";
+                
+                await RecordGameResult(game.WhiteUsername, game.BlackUsername ?? "Guest (Black)", winner);
+            }
             CodeToGameState.TryRemove(gameCode, out _);
         }
+
+        var successResponse = new GameResponse
+            {
+                Success = true,
+                Message = "Your opponent has resigned"
+            };
+        await Clients.Client(connectionId).SendAsync("KingCheckmatedResponse", successResponse);
     }
+
 
     private async Task RecordGameResult(string whiteUsername, string blackUsername, string winner)
     {
@@ -277,9 +286,10 @@ public class GameHub : Hub
             var successResponse = new GameResponse
             {
                 Success = true,
-                Message = "Your opponent has resigned"
+                Message = "Game disconnected"
             };
             await Clients.Client(opponentConnectionId).SendAsync("OpponentDisconnected", successResponse);
+            await Clients.Client(connectionId).SendAsync("DisconnectGameResponse", successResponse);
             CodeToGameState.TryRemove(gameCode, out _);
         }
     }
