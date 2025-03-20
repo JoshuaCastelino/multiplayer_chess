@@ -8,10 +8,19 @@ using Npgsql;
 // using var connection = new NpgsqlConnection();
 
 public class GameHub : Hub
-{
+{    
+    private readonly IConfiguration _configuration;
+
+    public GameHub(IConfiguration configuration)
+    {
+        _configuration = configuration;
+    }
+
+    private string ConnectionString =>
+        _configuration.GetConnectionString("DefaultConnection");
+
     private static readonly ConcurrentDictionary<string, GameState> CodeToGameState = new ConcurrentDictionary<string, GameState>();
     private static readonly ConcurrentDictionary<string, string> UserConnections = new ConcurrentDictionary<string, string>();
-    private const string ConnectionString = "Host=localhost;Port=5432;Database=multiplayerchess;Username=root;Password=root;";
     private const string InitialBoard =
         "bRbNbBbQbKbBbNbRb\n" +
         "PbPbPbPbPbPbPbP\n" +

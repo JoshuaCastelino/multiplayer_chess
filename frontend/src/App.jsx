@@ -54,9 +54,9 @@ function App({ preventFlipping, multiplayer }) {
   const [blackUsername, setBlackUsername] = useState("Waiting...");
   const [wins, setWins] = useState({ white: 0, black: 0 });
 
-  const topColor = colour === "white" ? "black" : "white";
+  const topColour = colour === "white" ? "black" : "white";
   const topUsername = colour === "white" ? blackUsername : whiteUsername;
-  const bottomColor = colour;
+  const bottomColour = colour;
   const bottomUsername = username;
 
   const handleBeforeUnload = () => {
@@ -280,16 +280,16 @@ function App({ preventFlipping, multiplayer }) {
             style={{ height: tileSize * boardSize + 40 }}
           >
             <UserCard
-              color={topColor}
+              color={topColour}
               username={topUsername}
-              wins={wins.white}
-              yourTurn={playerTurn === topColor}
+              wins={topColour == "black" ? wins.black : wins.white}
+              yourTurn={playerTurn === topColour}
             />
             <UserCard
-              color={bottomColor}
+              color={bottomColour}
               username={bottomUsername}
-              wins={wins.black}
-              yourTurn={playerTurn === bottomColor}
+              wins={bottomColour == "black" ? wins.black : wins.white}
+              yourTurn={playerTurn === bottomColour}
             />
           </div>
         )}
