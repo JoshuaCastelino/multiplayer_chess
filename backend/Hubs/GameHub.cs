@@ -207,42 +207,38 @@ public class GameHub : Hub
 
     // Retrieves the versus history (score) between two players.
     // The response sends back the number of wins each player has recorded in games against one another.
-    public async Task GetHistory(string connectionId, string player1, string player2)
+    public async Task GetHistory(string connectionId, string whiteUsername, string blackUsername)
     {
         using var conn = new NpgsqlConnection(ConnectionString);
         await conn.OpenAsync();
 
         string query = @"
             SELECT 
-                COUNT(*) FILTER (WHERE winner = @player1) AS playerOneWins,
-                COUNT(*) FILTER (WHERE winner = @player2) AS playerTwoWins
+                COUNT(*) FILTER (WHERE winner = @white) AS whiteWins,
+                COUNT(*) FILTER (WHERE winner = @black) AS blackWins
             FROM versus 
-            WHERE (white = @player1 AND black = @player2)
-               OR (white = @player2 AND black = @player1);";
+            WHERE (white = @white AND black = @black)
+            OR (white = @black AND black = @white);";
 
         using var cmd = new NpgsqlCommand(query, conn);
-        cmd.Parameters.AddWithValue("player1", player1);
-        cmd.Parameters.AddWithValue("player2", player2);
+        cmd.Parameters.AddWithValue("white", whiteUsername);
+        cmd.Parameters.AddWithValue("black", blackUsername);
 
         using var reader = await cmd.ExecuteReaderAsync();
-        if (await reader.ReadAsync())
-        {
-            int playerOneWins = reader.GetInt32(reader.GetOrdinal("playerOneWins"));
-            int playerTwoWins = reader.GetInt32(reader.GetOrdinal("playerTwoWins"));
-            var response = new
-            {
-                success = true,
-                playerOneWins,
-                playerTwoWins
-            };
+        await reader.ReadAsync(); // Always returns a row due to aggregate functions
+        int whiteWins = reader.GetInt32(reader.GetOrdinal("whiteWins"));
+        int blackWins = reader.GetInt32(reader.GetOrdinal("blackWins"));
 
-            await Clients.Client(connectionId).SendAsync("GetHistoryResponse", response);
-        }
-        else
+        var response = new
         {
-            await Clients.Client(connectionId).SendAsync("GetHistoryResponse", new { success = false, message = "No history found." });
-        }
+            success = true,
+            whiteWins,
+            blackWins
+        };
+
+        await Clients.Client(connectionId).SendAsync("GetHistoryResponse", response);
     }
+
 
     public async Task DisconnectGame(string connectionId, string gameCode)
     {

@@ -98,13 +98,8 @@ export async function createGame(code: string, username: string) {
   }
 }
 
-export async function KingCheckmated(code: string, winningPlayerColor: string) {
-  try {
-    await connection.invoke("KingCheckmated", code, winningPlayerColor);
-    console.log("KingCheckmated called successfully.");
-  } catch (error) {
-    console.error("Error calling KingCheckmated:", error);
-  }
+export function KingCheckmated(code: string, winningPlayerColor: string) {
+  return invokeWithResponse("KingCheckmated", "KingCheckmatedResponse", [code, winningPlayerColor]);
 }
 
 export function joinGame(code: string, blackUsername: string, timeout?: number) {
@@ -112,6 +107,7 @@ export function joinGame(code: string, blackUsername: string, timeout?: number) 
 }
 
 export function disconnectGame(code: string, timeout?: number) {
+  console.log("disconnecting game");
   return invokeWithResponse("DisconnectGame", "DisconnectGameResponse", [code], timeout);
 }
 
@@ -125,4 +121,8 @@ export function CheckUserExists(email: string, timeout?: number) {
 
 export function AddUser(email: string, username: string, timeout?: number) {
   return invokeWithResponse("AddUser", "AddUserResponse", [email, username], timeout);
+}
+
+export function GetHistory(whiteUsername: string, blackUsername: string) {
+  return invokeWithResponse("GetHistory", "GetHistoryResponse", [whiteUsername, blackUsername]);
 }

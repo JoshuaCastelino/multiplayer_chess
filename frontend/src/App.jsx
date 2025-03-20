@@ -5,7 +5,9 @@ to render the current state of the board as well as handle the selection of piec
 
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { connection, disconnectGame, sendMove, KingCheckmated } from "./api";
+import { connection, disconnectGame, sendMove, KingCheckmated, GetHistory } from "./api";
+import { deserialiseBoard, serialiseBoard } from "./utils/apiUtils";
+import { useLocation } from "react-router-dom";
 import {
   initialise,
   isInBounds,
@@ -21,12 +23,11 @@ import {
   drawLegalMoves,
   checkGameEndCondition,
 } from "./utils/Render";
-import { deserialiseBoard, serialiseBoard } from "./utils/apiUtils";
-import { useLocation } from "react-router-dom";
 import CheckmateGraphic from "./CheckmateGraphic";
 import BackButton from "./BackButton";
 import UserCard from "./UserCard";
 import GameStatus from "./GameStatus";
+import ToggleThreatMap from "./ToggleThreatMap";
 
 function App({ preventFlipping, multiplayer }) {
   const canvasRef = useRef(null);
@@ -51,10 +52,16 @@ function App({ preventFlipping, multiplayer }) {
   const [gameEnded, setGameEnded] = useState(false);
   const [endMessage, setEndMessage] = useState("");
   const [blackUsername, setBlackUsername] = useState("Waiting...");
-  // const [whiteUsername, setWhiteUsername] = useState("Waiting...");
+  const [wins, setWins] = useState({ white: 0, black: 0 });
+
+  const topColor = colour === "white" ? "black" : "white";
+  const topUsername = colour === "white" ? blackUsername : whiteUsername;
+  const bottomColor = colour;
+  const bottomUsername = username;
 
   const handleBeforeUnload = () => {
     if (connection && connection.state === "Connected") {
+      KingCheckmated(gameCode, colour);
       disconnectGame(gameCode);
     }
   };
@@ -66,10 +73,27 @@ function App({ preventFlipping, multiplayer }) {
 
   useEffect(() => {
     const winner = playerTurn === "white" ? "Black" : "White";
-    console.log("Winner" + winner);
   }, [gameEnded]);
 
-  // ── REMOTE MOVE HANDLER ─────────────────────────────────────────
+  useEffect(() => {
+    const whiteUser = colour === "white" ? username : whiteUsername;
+    const blackUser = colour === "black" ? username : blackUsername;
+    GetHistory(whiteUser, blackUser)
+      .then((result) => {
+        if (result.success) {
+          setWins({
+            white: result.whiteWins,
+            black: result.blackWins,
+          });
+        } else {
+          console.error("API call returned an error:", result.message);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching history:", error);
+      });
+  }, [whiteUsername, blackUsername, username]);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
@@ -108,8 +132,6 @@ function App({ preventFlipping, multiplayer }) {
       connection.on("OpponentDisconnected", handleOpponentDisconected);
       window.addEventListener("beforeunload", handleBeforeUnload);
     }
-    console.log(whiteUsername);
-
     return () => {
       if (multiplayer) {
         connection.off("BlackJoined", handleBlackJoined);
@@ -120,9 +142,6 @@ function App({ preventFlipping, multiplayer }) {
     };
   }, []);
 
-  // ── BOARD RENDERING EFFECT ─────────────────────────────────────────
-  // Redraw the board and update legal moves whenever the board or
-  // related flags change.
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!board.length || !canvas) return;
@@ -138,7 +157,7 @@ function App({ preventFlipping, multiplayer }) {
     const { movesByPosition, endConditions } = king
       ? generateAllLegalMoves(board, king)
       : { movesByPosition: {}, endConditions: {} };
-    const { checked, checkmated, stalemated } = endConditions;
+    const { _, checkmated, stalemated } = endConditions;
     if (checkmated) {
       // Determine the winner: if the current player's move resulted in a checkmate,
       const winner = playerTurn === "white" ? "Black" : "White";
@@ -163,7 +182,6 @@ function App({ preventFlipping, multiplayer }) {
     navigate("/");
   };
 
-  // ── LOCAL MOVE HANDLER ──────────────────────────────────────────────
   const selectPiece = (e) => {
     // make sure that it is the players turn
     if (multiplayer && isWaitingForOpponent) return;
@@ -209,7 +227,6 @@ function App({ preventFlipping, multiplayer }) {
     }
   };
 
-  // ── SEND MOVE FUNCTION ─────────────────────────────────────────────
   async function handleSendMove(updatedBoard, mover, nextTurn) {
     try {
       const canvas = canvasRef.current;
@@ -236,9 +253,9 @@ function App({ preventFlipping, multiplayer }) {
   }
 
   function onBackButton() {
-    let winner = colour === "white" ? "black" : "white";
-    KingCheckmated(gameCode, winner);
-    handleBeforeUnload();
+    if (multiplayer) {
+      handleBeforeUnload();
+    }
     navigate("/");
   }
 
@@ -262,21 +279,18 @@ function App({ preventFlipping, multiplayer }) {
             className="absolute top-0 right-0 transform translate-x-[calc(100%+2rem)] flex flex-col justify-between"
             style={{ height: tileSize * boardSize + 40 }}
           >
-            {colour === "white" ? (
-              <>
-                {/* If player is white, then the opponent (black) is on top */}
-                <UserCard color="black" username={blackUsername} wins={7} />
-                {/* The player's white card is at the bottom */}
-                <UserCard color="white" username={username} wins={10} />
-              </>
-            ) : (
-              <>
-                {/* If player is black, then the opponent (white) is on top */}
-                <UserCard color="white" username={whiteUsername} wins={10} />
-                {/* The player's black card is at the bottom */}
-                <UserCard color="black" username={username} wins={7} />
-              </>
-            )}
+            <UserCard
+              color={topColor}
+              username={topUsername}
+              wins={wins.white}
+              yourTurn={playerTurn === topColor}
+            />
+            <UserCard
+              color={bottomColor}
+              username={bottomUsername}
+              wins={wins.black}
+              yourTurn={playerTurn === bottomColor}
+            />
           </div>
         )}
       </div>
@@ -287,19 +301,13 @@ function App({ preventFlipping, multiplayer }) {
         gameCode={gameCode}
       />
 
-      {!gameCode && (
-        <button
-          className={`mt-4 py-3 px-8 rounded-lg shadow-md font-bold transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 ${
-            colourThreats
-              ? "bg-red-600 hover:bg-red-700 focus:ring-red-500"
-              : "bg-green-600 hover:bg-green-700 focus:ring-green-500"
-          }`}
-          style={{ width: tileSize * boardSize + 40 }}
-          onClick={() => setColourThreats((prev) => !prev)}
-        >
-          {colourThreats ? "Disable Threat Colouring" : "Enable Threat Colouring"}
-        </button>
-      )}
+      <ToggleThreatMap
+        gameCode={gameCode}
+        colourThreats={colourThreats}
+        setColourThreats={setColourThreats}
+        tileSize={tileSize}
+        boardSize={boardSize}
+      />
     </div>
   );
 }
