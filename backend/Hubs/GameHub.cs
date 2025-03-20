@@ -9,16 +9,18 @@ using Npgsql;
 
 public class GameHub : Hub
 {    
-    private readonly IConfiguration _configuration;
+   private readonly string ConnectionString;
 
-    public GameHub(IConfiguration configuration)
+    public GameHub()
     {
-        _configuration = configuration;
+        // If you’re reading from environment variables, do so here
+        var host = Environment.GetEnvironmentVariable("DB_HOST") ?? "localhost";
+        var user = Environment.GetEnvironmentVariable("DB_USER") ?? "root";
+        var pass = Environment.GetEnvironmentVariable("DB_PASS") ?? "root";
+        var database = Environment.GetEnvironmentVariable("DB_NAME") ?? "multiplayerchess";
+
+        ConnectionString = $"Host={host};Database={database};Username={user};Password={pass};";
     }
-
-    private string ConnectionString =>
-        _configuration.GetConnectionString("DefaultConnection");
-
     private static readonly ConcurrentDictionary<string, GameState> CodeToGameState = new ConcurrentDictionary<string, GameState>();
     private static readonly ConcurrentDictionary<string, string> UserConnections = new ConcurrentDictionary<string, string>();
     private const string InitialBoard =
