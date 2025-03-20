@@ -61,7 +61,6 @@ function App({ preventFlipping, multiplayer }) {
 
   const handleBeforeUnload = () => {
     if (connection && connection.state === "Connected") {
-      KingCheckmated(gameCode, colour);
       disconnectGame(gameCode);
     }
   };
@@ -70,10 +69,6 @@ function App({ preventFlipping, multiplayer }) {
     setEndMessage("Your opponent has resigned");
     setGameEnded(true);
   };
-
-  useEffect(() => {
-    const winner = playerTurn === "white" ? "Black" : "White";
-  }, [gameEnded]);
 
   useEffect(() => {
     const whiteUser = colour === "white" ? username : whiteUsername;
