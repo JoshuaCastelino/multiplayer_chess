@@ -13,7 +13,7 @@ A web-based chess game that allows two players to play against each other in rea
   - Join an existing game using its code.
   - The game creator plays White by default.
 - **User Accounts:** 
-  - Sign up with a username and email to create an account.
+  - Sign up with a Google email and username to create an account.
   - The system tracks players and game outcomes (wins/losses) in a database.
 - **Persistent Game Records:** Completed games are recorded (including players and the winner) for future reference and potential statistics.
 - **Threat Colouring:** In single player mode, view which tiles are under threat by each player.
