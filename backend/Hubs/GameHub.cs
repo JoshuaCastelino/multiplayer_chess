@@ -323,7 +323,7 @@ public record GameState
         BlackConnectionID = blackConnectionId;
         WhiteUsername = whiteUsername;
         BoardState = boardState;
-        BlackUsername = null; // Initially null
+        BlackUsername = null;
     }
 }
 
