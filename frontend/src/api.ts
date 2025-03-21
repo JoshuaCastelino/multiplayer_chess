@@ -24,7 +24,6 @@ export async function startConnection() {
       alert("Connection lost! Trying to reconnect...");
       await reconnect();
     });
-    // Use a custom flag to prevent duplicate registrations.
     connection["onCloseRegistered"] = true;
   }
 }
